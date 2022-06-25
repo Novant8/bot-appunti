@@ -1,5 +1,5 @@
 import { BasicHandler, okResponse } from '@libs/api-gateway';
-import { handlers } from '@messages/index';
+import { handlers } from '@event_handlers/index';
 import { Telegraf } from 'telegraf';
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);

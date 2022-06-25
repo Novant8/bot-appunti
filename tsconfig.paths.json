@@ -4,7 +4,7 @@
     "paths": {
       "@functions/*": ["functions/*"],
       "@libs/*": ["libs/*"],
-      "@messages/*": ["messages/*"]
+      "@event_handlers/*": ["event_handlers/*"]
     }
   }
 }
