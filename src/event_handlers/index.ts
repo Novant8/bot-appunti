@@ -9,13 +9,13 @@ export type MessageData = {
 }
 
 import { handler as start } from './start';
-import { handler as noteDetails } from './noteDetails';
+import { handler as invoiceMessage } from './invoiceMessage';
 import { handler as preCheckout } from './preCheckout';
 import { handler as successfulPayment } from './successfulPayment';
 
 export const handlers : MessageHandler[] = [
     start,
-    noteDetails,
+    invoiceMessage,
     preCheckout,
     successfulPayment
 ]
