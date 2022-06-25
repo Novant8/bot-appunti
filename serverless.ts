@@ -19,7 +19,8 @@ const serverlessConfiguration: AWS = {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
       TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN,
-      PAYMENT_TOKEN: process.env.PAYMENT_TOKEN
+      PAYMENT_TOKEN: process.env.PAYMENT_TOKEN,
+      DROPBOX_TOKEN: process.env.DROPBOX_TOKEN
     },
   },
   // import the function via paths

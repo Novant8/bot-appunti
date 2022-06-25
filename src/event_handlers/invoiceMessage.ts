@@ -7,7 +7,7 @@ const getInvoiceParams = async (course : string) : Promise<NewInvoiceParameters>
     return {
         title: `Appunti ${materia}`,
         description: `Appunti completi di ${materia} presi al Politecnico di Torino e scritti in ${tecnologia}. Prof. ${professori.join(', ')}, A.A ${anno}/${anno+1}, ${pagine} pagine. ${ note ? `Note aggiuntive: ${note}` : "" }`,
-        payload: "tmp",
+        payload: JSON.stringify({ course: materia }),
         provider_token: process.env.PAYMENT_TOKEN,
         currency: "EUR",
         prices: [
