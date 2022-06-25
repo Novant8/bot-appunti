@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "paths": {
-      "@functions/*": ["src/functions/*"],
-      "@libs/*": ["src/libs/*"]
+      "@functions/*": ["functions/*"],
+      "@libs/*": ["libs/*"],
+      "@messages/*": ["messages/*"]
     }
   }
 }
