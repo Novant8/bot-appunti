@@ -1,13 +1,15 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Handler } from "aws-lambda"
 
-type APIResponse = string | object;
 export type BasicHandler = Handler<APIGatewayProxyEvent, APIGatewayProxyResult>;
 
-export const formatJSONResponse = (response: APIResponse = '') => {
+export const errorResponse = (error : Error) : APIGatewayProxyResult => {
   return {
-    statusCode: 200,
-    body: JSON.stringify(response)
+    statusCode: 500,
+    body: error.message
   }
 }
 
-export const okResponse = formatJSONResponse();
+export const okResponse : APIGatewayProxyResult = {
+  statusCode: 200,
+  body: ''
+}
