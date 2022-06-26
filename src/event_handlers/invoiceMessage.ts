@@ -14,17 +14,17 @@ const courseList = async () : Promise<MessageData> => {
 }
 
 const getInvoiceParams = async (course : string) : Promise<NewInvoiceParameters> => {
-    const { materia, prezzo, professori, anno, tecnologia, pagine, "note aggiuntive": note, contenuto } = await getNoteDetails(course);
+    const { materia, prezzo, descrizione } = await getNoteDetails(course);
     return {
         title: `Appunti ${materia}`,
-        description: `Appunti completi di ${materia} scritti in ${tecnologia}. Prof. ${professori.join(', ')}, A.A ${anno}/${anno+1}, ${pagine} pagine. Contengono ${contenuto}. ${ note ? `Note aggiuntive: ${note}` : "" }`,
+        description: descrizione,
         payload: JSON.stringify({ course: materia }),
         provider_token: process.env.PAYMENT_TOKEN,
         currency: "EUR",
         prices: [
             {
                 label: `Appunti ${materia}`,
-                amount: prezzo*100
+                amount: prezzo
             }
         ]
     }

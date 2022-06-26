@@ -2,12 +2,7 @@ import { DynamoDBClient, QueryCommand, QueryCommandInput, ScanCommand, ScanComma
 
 export type NoteDetails = {
     materia: string,
-    professori: string[],
-    anno: number,
-    contenuto: string,
-    tecnologia: string,
-    pagine: number,
-    "note aggiuntive"?: string,
+    descrizione: string,
     prezzo: number
 }
 
@@ -29,27 +24,19 @@ export const getCourseNames = async () : Promise<string[]> => {
 export const getNoteDetails = async (course : string) : Promise<NoteDetails> => {
     const params : QueryCommandInput = {
         TableName: "appunti",
-        ProjectionExpression: "materia, professori, anno, contenuto, tecnologia, pagine, #note, prezzo",
+        ProjectionExpression: "descrizione, prezzo",
         KeyConditionExpression: "materia = :course",
         ExpressionAttributeValues: {
             ":course": { S: course }
-        },
-        ExpressionAttributeNames: {
-            "#note": "note aggiuntive"
         }
     }
 
     const res = await db.send(new QueryCommand(params));
 
     return {
-        materia: res.Items[0].materia.S,
-        professori: res.Items[0].professori.SS,
-        anno: parseInt(res.Items[0].anno.N),
-        contenuto: res.Items[0].contenuto.S,
-        tecnologia: res.Items[0].tecnologia.S,
-        "note aggiuntive": res.Items[0]["note aggiuntive"].S ?? undefined,
-        pagine: parseInt(res.Items[0].pagine.N),
-        prezzo: parseFloat(res.Items[0].prezzo.N)
+        materia: course,
+        descrizione: res.Items[0].descrizione.S,
+        prezzo: parseInt(res.Items[0].prezzo.N)
     }
 }
 
