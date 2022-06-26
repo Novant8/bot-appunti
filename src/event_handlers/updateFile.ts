@@ -1,8 +1,6 @@
 import { getCourseNames, updateNotesFile } from "@libs/database";
-import { Telegraf } from "telegraf";
+import { creatorOnly } from "@libs/middleware";
 import { MessageHandler } from ".";
-
-const creatorOnly = Telegraf.filter(ctx => ctx.from.id === parseInt(process.env.CREATOR_USERID));
 
 export const handler: MessageHandler = (bot) => {
     bot.on('document', creatorOnly, async (ctx) => {

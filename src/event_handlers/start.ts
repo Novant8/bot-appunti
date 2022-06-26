@@ -1,5 +1,4 @@
-import { getCourseNames } from "@libs/database";
-import { Context, Markup } from "telegraf";
+import { Context } from "telegraf";
 import { Update } from "telegraf/typings/core/types/typegram";
 import { MessageData, MessageHandler } from ".";
 
@@ -7,10 +6,9 @@ import { MessageData, MessageHandler } from ".";
  * Generates message upon /start
  */
 const startMessage = async (name: string) : Promise<MessageData> => {
-    const courseNames = await getCourseNames();
     return {
-        text: `Ciao ${name}!\nQuali appunti vuoi consultare?`, // TODO: change text
-        extras: Markup.inlineKeyboard(courseNames.map(course => Markup.button.callback(course, course)))
+        text: `Ciao ${name}!\nQuesto bot è stato progettato per inviare in privato i PDF degli appunti acquistati da [questo canale](${process.env.CHANNEL_LINK}). Per informazioni o segnalazioni contatta @sAlb98.`,
+        extras: { parse_mode: "Markdown" }
     };
 }
 
