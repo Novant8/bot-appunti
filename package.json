@@ -12,7 +12,6 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.118.0",
     "dotenv": "^16.0.1",
-    "dropbox": "^10.31.0",
     "telegraf": "^4.8.5"
   },
   "devDependencies": {

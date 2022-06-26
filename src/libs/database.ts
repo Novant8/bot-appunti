@@ -1,4 +1,4 @@
-import { DynamoDBClient, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 
 export type NoteDetails = {
     materia: string,
@@ -29,9 +29,13 @@ export const getCourseNames = async () : Promise<string[]> => {
 export const getNoteDetails = async (course : string) : Promise<NoteDetails> => {
     const params : QueryCommandInput = {
         TableName: "appunti",
+        ProjectionExpression: "materia, professori, anno, contenuto, tecnologia, pagine, #note, prezzo",
         KeyConditionExpression: "materia = :course",
         ExpressionAttributeValues: {
             ":course": { S: course }
+        },
+        ExpressionAttributeNames: {
+            "#note": "note aggiuntive"
         }
     }
 
@@ -47,4 +51,34 @@ export const getNoteDetails = async (course : string) : Promise<NoteDetails> => 
         pagine: parseInt(res.Items[0].pagine.N),
         prezzo: parseFloat(res.Items[0].prezzo.N)
     }
+}
+
+export const getFullNotesFileId = async (course : string) : Promise<string> => {
+    const params : QueryCommandInput = {
+        TableName: "appunti",
+        ProjectionExpression: "fileId_full",
+        KeyConditionExpression: "materia = :course",
+        ExpressionAttributeValues: {
+            ":course": { S: course }
+        }
+    }
+
+    const res = await db.send(new QueryCommand(params));
+
+    return res.Items[0].fileId_full.S;
+}
+
+export const updateNotesFile = async (course : string, file_id : string) : Promise<void> => {
+    const params : UpdateItemCommandInput = {
+        TableName: "appunti",
+        Key: {
+            materia: { S: course }
+        },
+        UpdateExpression: "SET fileId_full = :fileid",
+        ExpressionAttributeValues: {
+            ":fileid": { S: file_id }
+        }
+    }
+
+    await db.send(new UpdateItemCommand(params));
 }
