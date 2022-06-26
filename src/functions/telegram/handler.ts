@@ -11,6 +11,7 @@ export const main: BasicHandler = async (event) => {
     await bot.handleUpdate(JSON.parse(event.body));
     return okResponse;
   } catch(e) {
+    console.error(e);
     return errorResponse(e);
   }
 };
