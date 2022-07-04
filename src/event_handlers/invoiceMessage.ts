@@ -2,7 +2,7 @@ import { getCourseNames, getNoteDetails } from "@libs/database";
 import { creatorOnly } from "@libs/middleware";
 import { Context, Markup } from "telegraf";
 import { Update } from "telegraf/typings/core/types/typegram";
-import { NewInvoiceParameters } from "telegraf/typings/telegram-types";
+import { ExtraInvoice, NewInvoiceParameters } from "telegraf/typings/telegram-types";
 import { MessageData, MessageHandler } from ".";
 
 const courseList = async () : Promise<MessageData> => {
@@ -13,7 +13,7 @@ const courseList = async () : Promise<MessageData> => {
     };
 }
 
-const getInvoiceParams = async (course : string) : Promise<NewInvoiceParameters> => {
+const getInvoiceParams = async (course : string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
     const { materia, prezzo, descrizione } = await getNoteDetails(course);
     return {
         title: `Appunti ${materia}`,
@@ -26,7 +26,8 @@ const getInvoiceParams = async (course : string) : Promise<NewInvoiceParameters>
                 label: `Appunti ${materia}`,
                 amount: prezzo
             }
-        ]
+        ],
+        ...Markup.inlineKeyboard([ Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`) ])
     }
 }
 
@@ -39,7 +40,7 @@ export const handler : MessageHandler = async (bot) => {
     })
 
     bot.action(courses, async (ctx) => {
-        const params = await getInvoiceParams(ctx.callbackQuery.data);
-        await ctx.replyWithInvoice(params);
+        const { reply_markup, ...params } = await getInvoiceParams(ctx.callbackQuery.data);
+        await ctx.replyWithInvoice(params, { reply_markup });
     })
 }
