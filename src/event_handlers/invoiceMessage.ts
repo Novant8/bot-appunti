@@ -9,15 +9,18 @@ const courseList = async () : Promise<MessageData> => {
     const courseNames = await getCourseNames();
     return {
         text: "Clicca sul nome del corso per mandare il messaggio fattura",
-        extras: Markup.inlineKeyboard(courseNames.map(course => Markup.button.callback(course, course)))
+        extras: Markup.inlineKeyboard(courseNames.map(course => Markup.button.callback(course, course)), { columns: 2 })
     };
 }
 
 const getInvoiceParams = async (course : string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
-    const { materia, prezzo, descrizione } = await getNoteDetails(course);
+    const { materia, prezzo, descrizione, url_foto } = await getNoteDetails(course);
     return {
         title: `Appunti ${materia}`,
         description: descrizione,
+        photo_url: url_foto,
+        photo_width: url_foto && 3753,
+        photo_height: url_foto && 3528,
         payload: JSON.stringify({ course: materia }),
         provider_token: process.env.PAYMENT_TOKEN,
         currency: "EUR",
