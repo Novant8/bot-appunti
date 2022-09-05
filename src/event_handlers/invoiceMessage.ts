@@ -10,6 +10,10 @@ type InvoiceMessageOptions = {
     channel: boolean
 }
 
+export type InvoicePayload = {
+    course: string
+}
+
 const courseList = async (courseNames: string[], options: InvoiceMessageOptions) : Promise<MessageData> => {
     return {
         text: `Clicca sul nome del corso per mandare il messaggio fattura (**${options.test ? 'MODALITÀ TEST': `MODALITÀ LIVE${options.channel ? ' - CANALE' : ''}`}**)`,
