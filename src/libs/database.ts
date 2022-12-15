@@ -4,6 +4,7 @@ export type NoteDetails = {
     materia: string,
     descrizione: string,
     prezzo: number,
+    url_anteprima?: string,
     url_foto?: string
 }
 
@@ -25,7 +26,7 @@ export const getCourseNames = async () : Promise<string[]> => {
 export const getNoteDetails = async (course : string) : Promise<NoteDetails> => {
     const params : QueryCommandInput = {
         TableName: "appunti",
-        ProjectionExpression: "descrizione, prezzo, url_foto",
+        ProjectionExpression: "descrizione, prezzo, url_foto, url_anteprima",
         KeyConditionExpression: "materia = :course",
         ExpressionAttributeValues: {
             ":course": { S: course }
@@ -38,7 +39,8 @@ export const getNoteDetails = async (course : string) : Promise<NoteDetails> => 
         materia: course,
         descrizione: res.Items[0].descrizione.S,
         prezzo: parseInt(res.Items[0].prezzo.N),
-        url_foto: res.Items[0].url_foto.S
+        url_anteprima: res.Items[0].url_anteprima?.S,
+        url_foto: res.Items[0].url_foto?.S
     }
 }
 

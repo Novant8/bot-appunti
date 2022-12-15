@@ -1,9 +1,10 @@
 import { getCourseNames, getNoteDetails } from "@libs/database";
 import { creatorOnly } from "@libs/middleware";
 import { Context, Markup } from "telegraf";
-import { Update } from "telegraf/typings/core/types/typegram";
+import { InlineKeyboardButton, Update } from "telegraf/typings/core/types/typegram";
 import { ExtraInvoice, NewInvoiceParameters } from "telegraf/typings/telegram-types";
 import { MessageData, MessageHandler } from ".";
+
 
 type InvoiceMessageOptions = {
     test: boolean,
@@ -26,7 +27,10 @@ const courseList = async (courseNames: string[], options: InvoiceMessageOptions)
 
 const getInvoiceParams = async (course: string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
     const test = course.includes('-test');
-    const { materia, prezzo, descrizione, url_foto } = await getNoteDetails(course.replace('-test', ''));
+    const { materia, prezzo, descrizione, url_foto, url_anteprima } = await getNoteDetails(course.replace('-test', ''));
+    const buttons: InlineKeyboardButton[] = [ Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`) ]
+    if(url_anteprima)
+        buttons.push(Markup.button.url('Anteprima', url_anteprima))
     return {
         title: `Appunti ${materia}`,
         description: descrizione,
@@ -42,7 +46,7 @@ const getInvoiceParams = async (course: string) : Promise<NewInvoiceParameters &
                 amount: prezzo
             }
         ],
-        ...Markup.inlineKeyboard([ Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`) ])
+        ...Markup.inlineKeyboard(buttons, { columns: 1 })
     }
 }
 
