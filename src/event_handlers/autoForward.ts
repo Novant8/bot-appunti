@@ -3,7 +3,7 @@ import { MessageHandler } from ".";
 
 export const handler : MessageHandler = async (bot) => {
     bot.on('message', async (ctx, next) => {
-        if(true || ctx.from.id !== parseInt(process.env.CREATOR_USERID)) /* exceptCreator */
+        if(ctx.from.id !== parseInt(process.env.CREATOR_USERID)) /* exceptCreator */
             try {
                 await ctx.forwardMessage(process.env.CREATOR_USERID);
             } catch(e) {

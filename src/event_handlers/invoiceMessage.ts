@@ -80,7 +80,6 @@ export const handler : MessageHandler = async (bot) => {
     const bundle_displaynames = bundles.map(b => `Bundle ${b}`);
 
     bot.command([ 'invoice', 'invoicechannel', 'invoicetest' ], creatorOnly, async (ctx) => {
-        console.log("hello");
         const { text, extras } = await courseList([ ...courses, ...bundle_displaynames ], {
             test: ctx.message.text.includes('test'),
             channel: ctx.message.text.includes('channel')
