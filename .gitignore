@@ -9,7 +9,7 @@ jspm_packages
 .esbuild
 
 # environment variables file
-.env
+*.env
 
 # mocks folder containing JSON mock requests
 mocks

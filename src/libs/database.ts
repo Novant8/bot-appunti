@@ -55,9 +55,10 @@ export const getNoteDetails = async (course : string) : Promise<NoteDetails> => 
 }
 
 export const getFullNotesFileId = async (course : string) : Promise<string> => {
+    const fileId_full = process.env.STAGE === 'prod' ? 'fileId_full' : 'fileId_full_DEV';
     const params : QueryCommandInput = {
         TableName: "appunti",
-        ProjectionExpression: "fileId_full",
+        ProjectionExpression: fileId_full,
         KeyConditionExpression: "materia = :course",
         ExpressionAttributeValues: {
             ":course": { S: course }
@@ -66,16 +67,17 @@ export const getFullNotesFileId = async (course : string) : Promise<string> => {
 
     const res = await db.send(new QueryCommand(params));
 
-    return res.Items[0].fileId_full.S;
+    return res.Items[0][fileId_full].S;
 }
 
 export const updateNotesFile = async (course : string, file_id : string) : Promise<void> => {
+    const fileId_full = process.env.STAGE === 'prod' ? 'fileId_full' : 'fileId_full_DEV';
     const params : UpdateItemCommandInput = {
         TableName: "appunti",
         Key: {
             materia: { S: course }
         },
-        UpdateExpression: "SET fileId_full = :fileid",
+        UpdateExpression: `SET ${fileId_full} = :fileid`,
         ExpressionAttributeValues: {
             ":fileid": { S: file_id }
         }

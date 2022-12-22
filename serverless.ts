@@ -11,6 +11,7 @@ const serverlessConfiguration: AWS = {
     name: 'aws',
     runtime: 'nodejs14.x',
     region: 'eu-south-1',
+    stage: process.env.STAGE,
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true,
@@ -18,9 +19,9 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
+      STAGE: process.env.STAGE,
       TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN,
-      PAYMENT_TEST_TOKEN: process.env.PAYMENT_TEST_TOKEN,
-      PAYMENT_LIVE_TOKEN: process.env.PAYMENT_LIVE_TOKEN,
+      PAYMENT_TOKEN: process.env.PAYMENT_TOKEN,
       CREATOR_USERID: process.env.CREATOR_USERID,
       CHANNEL_LINK: process.env.CHANNEL_LINK,
       CHANNEL_ID: process.env.CHANNEL_ID

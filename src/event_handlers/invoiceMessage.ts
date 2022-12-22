@@ -7,7 +7,6 @@ import { MessageData, MessageHandler } from ".";
 
 
 type InvoiceMessageOptions = {
-    test: boolean,
     channel: boolean
 }
 
@@ -18,18 +17,15 @@ export type InvoicePayload = {
 
 const courseList = async (itemNames: string[], options: InvoiceMessageOptions) : Promise<MessageData> => {
     return {
-        text: `Clicca sul nome del corso/bundle per mandare il messaggio fattura (**MODALITÀ ${options.test ? 'TEST': `LIVE${options.channel ? ' - CANALE' : ''}`}**)`,
+        text: `Clicca sul nome del corso/bundle per mandare il messaggio fattura ${options.channel ? '(MODALITÀ CANALE)' : ''}`,
         extras: {
             parse_mode: 'Markdown',
-            ...Markup.inlineKeyboard(itemNames.map(item => {
-                const action = item + (options.test ? '-test' : '') + (options.channel ? '-channel' : '');
-                return Markup.button.callback(item, action);
-            }), { columns: 2 })
+            ...Markup.inlineKeyboard(itemNames.map(item => Markup.button.callback(item, item + (options.channel ? '-channel' : ''))), { columns: 2 })
         }
     };
 }
 
-const getInvoiceParams = async (course: string, test: boolean) : Promise<NewInvoiceParameters & ExtraInvoice> => {
+const getInvoiceParams = async (course: string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
     const { materia, prezzo, descrizione, url_foto, url_anteprima } = await getNoteDetails(course);
     const buttons: InlineKeyboardButton[] = [ Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`) ]
     if(url_anteprima)
@@ -41,7 +37,7 @@ const getInvoiceParams = async (course: string, test: boolean) : Promise<NewInvo
         photo_width: url_foto && 3753,
         photo_height: url_foto && 3528,
         payload: JSON.stringify({ course: materia }),
-        provider_token: test ? process.env.PAYMENT_TEST_TOKEN : process.env.PAYMENT_LIVE_TOKEN,
+        provider_token: process.env.PAYMENT_TOKEN,
         currency: "EUR",
         prices: [
             {
@@ -53,7 +49,7 @@ const getInvoiceParams = async (course: string, test: boolean) : Promise<NewInvo
     }
 }
 
-const getInvoiceBundleParams = async (name: string, test: boolean) : Promise<NewInvoiceParameters & ExtraInvoice> => {
+const getInvoiceBundleParams = async (name: string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
     const { descrizione, materie_prezzi, url_foto } = await getBundleDetails(name);
     const prices = Object.values(materie_prezzi);
     const total = prices.reduce((tot, price) => tot + price, 0);
@@ -64,7 +60,7 @@ const getInvoiceBundleParams = async (name: string, test: boolean) : Promise<New
         photo_width: url_foto && 3753,
         photo_height: url_foto && (prices.length > 3 ? 3528 : 1764),
         payload: JSON.stringify({ bundle: name }),
-        provider_token: test ? process.env.PAYMENT_TEST_TOKEN : process.env.PAYMENT_LIVE_TOKEN,
+        provider_token: process.env.PAYMENT_TOKEN,
         currency: "EUR",
         prices: Object.entries(materie_prezzi).map(([ materia, amount ]) => ({
             label: `Appunti ${materia}`,
@@ -77,27 +73,28 @@ const getInvoiceBundleParams = async (name: string, test: boolean) : Promise<New
 export const handler : MessageHandler = async (bot) => {
     const courses = await getCourseNames();
     const bundles = await getBundleNames();
-    const bundle_displaynames = bundles.map(b => `Bundle ${b}`);
+    const bundles_displaynames = bundles.map(b => `Bundle ${b}`);
 
-    bot.command([ 'invoice', 'invoicechannel', 'invoicetest' ], creatorOnly, async (ctx) => {
-        const { text, extras } = await courseList([ ...courses, ...bundle_displaynames ], {
-            test: ctx.message.text.includes('test'),
+    const invoiceCommands = [ 'invoice' ];
+    if(process.env.STAGE === 'prod')
+        invoiceCommands.push('invoicechannel')
+
+    bot.command(invoiceCommands, creatorOnly, async (ctx) => {
+        const { text, extras } = await courseList([ ...courses, ...bundles_displaynames ], {
             channel: ctx.message.text.includes('channel')
         });
         await ctx.reply(text, extras);
     })
 
-    let actions = [ ...courses, ...bundle_displaynames ].flatMap(item => [
-        item,
-        `${item}-test`,
-        `${item}-channel`
-    ]);
+    const actions = [ ...courses, ...bundles_displaynames ];
+    if(process.env.STAGE === 'prod')
+        actions.push(...actions.map(item => item+'-channel'));
+
     bot.action(actions, creatorOnly, async (ctx) => {
         const channel = ctx.callbackQuery.data.includes('-channel');
-        const test = ctx.callbackQuery.data.includes('-test');
-        const item = ctx.callbackQuery.data.replace('-channel', '').replace('-test', '');
+        const item = ctx.callbackQuery.data.replace('-channel', '');
 
-        const { reply_markup, ...params } = item.includes('Bundle') ? await getInvoiceBundleParams(item.substring(7), test) : await getInvoiceParams(item, test);
-        ctx.telegram.sendInvoice(channel ? process.env.CHANNEL_ID : ctx.chat.id, params, { reply_markup });
+        const { reply_markup, ...params } = item.includes('Bundle') ? await getInvoiceBundleParams(item.substring(7)) : await getInvoiceParams(item);
+        await ctx.telegram.sendInvoice(channel ? process.env.CHANNEL_ID : ctx.chat.id, params, { reply_markup });
     })
 }
