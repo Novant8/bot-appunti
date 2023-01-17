@@ -1,5 +1,4 @@
 import { DynamoDBClient, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
-import { resolve } from 'path';
 
 export type NoteDetails = {
     materia: string,
@@ -117,6 +116,21 @@ export const getBundleDetails = async (name: string): Promise<BundleDetails> => 
     };
 }
 
+export const getBundleCourses = async (name: string): Promise<string[]> => {
+    const params : QueryCommandInput = {
+        TableName: "appunti-bundle",
+        ProjectionExpression: "materie_prezzi",
+        KeyConditionExpression: "nome = :name",
+        ExpressionAttributeValues: {
+            ":name": { S: name }
+        }
+    }
+
+    const res = await db.send(new QueryCommand(params));
+
+    return Object.keys(res.Items[0].materie_prezzi.M);
+}
+
 export const getBundlePrice = async (name: string): Promise<number> => {
     const params : QueryCommandInput = {
         TableName: "appunti-bundle",
@@ -133,19 +147,6 @@ export const getBundlePrice = async (name: string): Promise<number> => {
 }
 
 export const getBundleFullNotesFileIDs = async (name: string): Promise<string[]> => {
-    // GET COURSE NAMES CONTAINED IN BUNDLE
-    const query_params : QueryCommandInput = {
-        TableName: "appunti-bundle",
-        ProjectionExpression: "materie_prezzi",
-        KeyConditionExpression: "nome = :name",
-        ExpressionAttributeValues: {
-            ":name": { S: name }
-        }
-    }
-
-    let res = await db.send(new QueryCommand(query_params));
-
-    const courses = Object.keys(res.Items[0].materie_prezzi.M);
-
+    const courses = await getBundleCourses(name);
     return Promise.all(courses.map(c => getFullNotesFileId(c)));
 }

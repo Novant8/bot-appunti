@@ -14,6 +14,7 @@ import { handler as invoiceMessage } from './invoiceMessage';
 import { handler as preCheckout } from './preCheckout';
 import { handler as successfulPayment } from './successfulPayment';
 import { handler as updateFile } from './updateFile';
+import { handler as announce } from './announce';
 
 export const handlers : MessageHandler[] = [
     start,
@@ -21,5 +22,6 @@ export const handlers : MessageHandler[] = [
     invoiceMessage,
     preCheckout,
     successfulPayment,
-    updateFile
+    updateFile,
+    announce
 ]

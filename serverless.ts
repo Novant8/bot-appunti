@@ -24,7 +24,8 @@ const serverlessConfiguration: AWS = {
       PAYMENT_TOKEN: process.env.PAYMENT_TOKEN,
       CREATOR_USERID: process.env.CREATOR_USERID,
       CHANNEL_LINK: process.env.CHANNEL_LINK,
-      CHANNEL_ID: process.env.CHANNEL_ID
+      CHANNEL_ID: process.env.CHANNEL_ID,
+      STRIPE_API_KEY: process.env.STRIPE_API_KEY
     },
   },
   // import the function via paths
