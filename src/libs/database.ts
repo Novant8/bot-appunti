@@ -17,19 +17,28 @@ export type BundleDetails = {
     url_foto?: string
 }
 
+export type GetCourseNamesOptions = {
+    sorted: boolean
+}
+
+export type getBundleNamesOptions = {
+    sorted: boolean
+}
+
 const db = new DynamoDBClient({
     region: "eu-south-1",
 })
 
-export const getCourseNames = async () : Promise<string[]> => {
+export const getCourseNames = async (options: GetCourseNamesOptions = { sorted: false }) : Promise<string[]> => {    
     const params : ScanCommandInput = {
         TableName: "appunti",
-        ProjectionExpression: "materia"
+        ProjectionExpression: "materia, ordine"
     }
 
     const res = await db.send(new ScanCommand(params));
+    const items = options.sorted ? res.Items.sort((i1, i2) => parseInt(i1.ordine.N) - parseInt(i2.ordine.N)) : res.Items;
 
-    return res.Items.map(i => i.materia.S);
+    return items.map(i => i.materia.S);
 }
 
 export const getNoteDetails = async (course : string) : Promise<NoteDetails> => {
@@ -85,15 +94,16 @@ export const updateNotesFile = async (course : string, file_id : string) : Promi
     await db.send(new UpdateItemCommand(params));
 }
 
-export const getBundleNames = async () : Promise<string[]> => {
+export const getBundleNames = async (options: getBundleNamesOptions = { sorted: false }) : Promise<string[]> => {
     const params : ScanCommandInput = {
         TableName: "appunti-bundle",
-        ProjectionExpression: "nome"
+        ProjectionExpression: "nome, ordine"
     }
 
     const res = await db.send(new ScanCommand(params));
+    const items = options.sorted ? res.Items.sort((i1, i2) => parseInt(i1.ordine.N) - parseInt(i2.ordine.N)) : res.Items;
 
-    return res.Items.map(i => i.nome.S);
+    return items.map(i => i.nome.S);
 }
 
 export const getBundleDetails = async (name: string): Promise<BundleDetails> => {
