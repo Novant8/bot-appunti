@@ -28,7 +28,10 @@ const courseList = async (itemNames: string[], options: InvoiceMessageOptions) :
 
 const getInvoiceParams = async (course: string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
     const { materia, prezzo, descrizione, url_foto, url_anteprima } = await getNoteDetails(course);
-    const buttons: InlineKeyboardButton[] = [ Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`) ]
+    const buttons: InlineKeyboardButton[] = [
+        Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`),
+        Markup.button.url('Satispay/Paypal/Bonifico: contattami in privato', 'https://t.me/sAlb98')
+    ]
     if(url_anteprima)
         buttons.push(Markup.button.url('Anteprima', url_anteprima));
     try {
@@ -81,7 +84,10 @@ const getInvoiceBundleParams = async (name: string) : Promise<NewInvoiceParamete
             amount
         })),
         disable_notification: true,
-        ...Markup.inlineKeyboard([ Markup.button.pay(`Acquista per €${(total/100).toFixed(2).replace(".", ",")}`) ])
+        ...Markup.inlineKeyboard([
+            Markup.button.pay(`Acquista per €${(total/100).toFixed(2).replace(".", ",")}`),
+            Markup.button.url('Satispay/Paypal/Bonifico: contattami in privato', 'https://t.me/sAlb98')
+        ], { columns: 1 })
     }
 }
 
@@ -111,6 +117,7 @@ export const handler : MessageHandler = async (bot) => {
 
         const { reply_markup, ...params } = item.includes('Bundle') ? await getInvoiceBundleParams(item.substring(7)) : await getInvoiceParams(item);
         await ctx.telegram.sendInvoice(channel ? process.env.CHANNEL_ID : ctx.chat.id, params, { reply_markup });
+        await ctx.answerCbQuery();
     })
 
     bot.command('invoicechannelall', creatorOnly, async (ctx) => {
