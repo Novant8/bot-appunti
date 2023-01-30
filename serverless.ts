@@ -2,6 +2,7 @@ import type { AWS } from '@serverless/typescript';
 import 'dotenv/config';
 
 import telegram from '@functions/telegram';
+import recurrent_message from '@functions/recurrent-message';
 
 const serverlessConfiguration: AWS = {
   service: 'bot-appunti',
@@ -29,7 +30,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { telegram },
+  functions: { telegram, recurrent_message },
   package: { individually: true },
   custom: {
     esbuild: {

@@ -6,7 +6,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'bot-appunti/telegram'
+        path: 'bot-appunti/recurrent-message'
       },
     },
   ],
