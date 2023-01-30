@@ -26,7 +26,8 @@ const serverlessConfiguration: AWS = {
       CREATOR_USERID: process.env.CREATOR_USERID,
       CHANNEL_LINK: process.env.CHANNEL_LINK,
       CHANNEL_ID: process.env.CHANNEL_ID,
-      STRIPE_API_KEY: process.env.STRIPE_API_KEY
+      STRIPE_API_KEY: process.env.STRIPE_API_KEY,
+      RECURRENT_MESSAGE_SECRET: process.env.RECURRENT_MESSAGE_SECRET
     },
   },
   // import the function via paths
