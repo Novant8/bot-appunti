@@ -123,12 +123,12 @@ export const handler : MessageHandler = async (bot) => {
     bot.command('invoicechannelall', creatorOnly, async (ctx) => {
         for(const course of courses) {
             const { reply_markup, ...params } = await getInvoiceParams(course);
-            await ctx.telegram.sendInvoice(process.env.STAGE === 'prod' ? process.env.CHANNEL_ID : process.env.CREATOR_USERID, params, { reply_markup });
+            await ctx.telegram.sendInvoice(process.env.CHANNEL_ID, params, { reply_markup });
         }
 
         for(const bundle of bundles) {
             const { reply_markup, ...params } = await getInvoiceBundleParams(bundle);
-            await ctx.telegram.sendInvoice(process.env.STAGE === 'prod' ? process.env.CHANNEL_ID : process.env.CREATOR_USERID, params, { reply_markup });
+            await ctx.telegram.sendInvoice(process.env.CHANNEL_ID, params, { reply_markup });
         }
 
         await ctx.reply("Done!");
