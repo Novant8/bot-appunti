@@ -16,6 +16,7 @@ import { handler as preCheckout } from './preCheckout';
 import { handler as successfulPayment } from './successfulPayment';
 import { handler as updateFile } from './updateFile';
 import { handler as announce } from './announce';
+import { handler as generateToken } from './generateToken';
 
 export const handlers : MessageHandler[] = [
     start,
@@ -25,5 +26,6 @@ export const handlers : MessageHandler[] = [
     autoReply,
     invoiceMessage,
     updateFile,
-    announce
+    announce,
+    generateToken
 ]

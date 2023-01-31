@@ -1,13 +1,15 @@
 import { BasicHandler, errorResponse, okResponse } from '@libs/api-gateway';
 import { Telegraf } from 'telegraf';
 import { verify, JsonWebTokenError } from 'jsonwebtoken'
+import { MessageEntity } from 'telegraf/typings/core/types/typegram';
 
 type RecurringMessageBody = {
     token: string
 }
 
 type JWTPayload = {
-    message: string
+    text: string
+    entities: MessageEntity[]
 }
 
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
@@ -15,8 +17,8 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
 export const main: BasicHandler = async (event) => {
   try {
     const { token }: RecurringMessageBody = JSON.parse(event.body);
-    const { message } = verify(token, process.env.RECURRENT_MESSAGE_SECRET) as JWTPayload;
-    await bot.telegram.sendMessage(process.env.STAGE === 'prod' ? process.env.CHANNEL_ID : process.env.CREATOR_USERID, message, { parse_mode: 'Markdown' });
+    const { text, entities } = verify(token, process.env.RECURRENT_MESSAGE_SECRET) as JWTPayload;
+    await bot.telegram.sendMessage(process.env.STAGE === 'prod' ? process.env.CHANNEL_ID : process.env.CREATOR_USERID, text, { entities });
 
     return okResponse;
   } catch(e) {
