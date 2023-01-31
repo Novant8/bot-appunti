@@ -116,19 +116,19 @@ export const handler : MessageHandler = async (bot) => {
         const item = ctx.callbackQuery.data.replace('-channel', '');
 
         const { reply_markup, ...params } = item.includes('Bundle') ? await getInvoiceBundleParams(item.substring(7)) : await getInvoiceParams(item);
-        await ctx.telegram.sendInvoice(channel ? process.env.CHANNEL_ID : ctx.chat.id, params, { reply_markup });
+        await ctx.telegram.sendInvoice(channel ? process.env.SHOP_CHANNEL : ctx.chat.id, params, { reply_markup });
         await ctx.answerCbQuery();
     })
 
     bot.command('invoicechannelall', creatorOnly, async (ctx) => {
         for(const course of courses) {
             const { reply_markup, ...params } = await getInvoiceParams(course);
-            await ctx.telegram.sendInvoice(process.env.CHANNEL_ID, params, { reply_markup });
+            await ctx.telegram.sendInvoice(process.env.SHOP_CHANNEL, params, { reply_markup });
         }
 
         for(const bundle of bundles) {
             const { reply_markup, ...params } = await getInvoiceBundleParams(bundle);
-            await ctx.telegram.sendInvoice(process.env.CHANNEL_ID, params, { reply_markup });
+            await ctx.telegram.sendInvoice(process.env.SHOP_CHANNEL, params, { reply_markup });
         }
 
         await ctx.reply("Done!");

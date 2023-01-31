@@ -24,8 +24,9 @@ const serverlessConfiguration: AWS = {
       TELEGRAM_TOKEN: process.env.TELEGRAM_TOKEN,
       PAYMENT_TOKEN: process.env.PAYMENT_TOKEN,
       CREATOR_USERID: process.env.CREATOR_USERID,
-      CHANNEL_LINK: process.env.CHANNEL_LINK,
-      CHANNEL_ID: process.env.CHANNEL_ID,
+      SHOP_CHANNEL: process.env.SHOP_CHANNEL,
+      SHOP_CHANNEL_LINK: process.env.CHANNEL_LINK,
+      ADVERT_CHANNEL: process.env.ADVERT_CHANNEL,
       STRIPE_API_KEY: process.env.STRIPE_API_KEY,
       RECURRENT_MESSAGE_SECRET: process.env.RECURRENT_MESSAGE_SECRET
     },

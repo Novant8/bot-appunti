@@ -18,7 +18,7 @@ export const main: BasicHandler = async (event) => {
   try {
     const { token }: RecurringMessageBody = JSON.parse(event.body);
     const { text, entities } = verify(token, process.env.RECURRENT_MESSAGE_SECRET) as JWTPayload;
-    await bot.telegram.sendMessage(process.env.CHANNEL_ID, text, { entities });
+    await bot.telegram.sendMessage(process.env.ADVERT_CHANNEL, text, { entities });
 
     return okResponse;
   } catch(e) {
