@@ -1,6 +1,7 @@
 import { Context } from "telegraf";
 import { Update } from "telegraf/typings/core/types/typegram";
 import { MessageData, MessageHandler } from ".";
+import { privateOnly } from "@libs/middleware";
 
 /**
  * Generates message upon /start
@@ -13,7 +14,7 @@ const startMessage = async (name: string) : Promise<MessageData> => {
 }
 
 export const handler : MessageHandler = (bot) => {
-    bot.start(async (ctx: Context<Update>) => {
+    bot.start(privateOnly, async (ctx: Context<Update>) => {
         const { text, extras } = await startMessage(ctx.from.first_name);
         await ctx.reply(text, extras);
     });

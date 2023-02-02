@@ -1,9 +1,9 @@
 import { sign } from "jsonwebtoken";
 import { MessageHandler } from ".";
-import { creatorOnly } from "@libs/middleware";
+import { creatorOnly, privateOnly } from "@libs/middleware";
 
 export const handler : MessageHandler = async (bot) => {
-    bot.command('generatetoken', creatorOnly, async (ctx) => {
+    bot.command('generatetoken', privateOnly, creatorOnly, async (ctx) => {
         const text = ctx.message.text.substring(ctx.message.entities[0].length);
         const entities = ctx.message.entities.slice(1).map(({ offset, ...e }) => ({ offset: offset-ctx.message.entities[0].length, ...e }));
 
