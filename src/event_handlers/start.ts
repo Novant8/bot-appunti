@@ -8,7 +8,7 @@ import { privateOnly } from "@libs/middleware";
  */
 const startMessage = async (name: string) : Promise<MessageData> => {
     return {
-        text: `Ciao ${name}!\nQuesto bot è stato progettato per inviare in privato i PDF degli appunti acquistati da [questo canale](${process.env.CHANNEL_LINK}). Per informazioni o segnalazioni contatta @sAlb98.`,
+        text: `Ciao ${name}!\nQuesto bot è stato progettato per inviare in privato i PDF degli appunti acquistati da [questo canale](${process.env.SHOP_CHANNEL_LINK}). Per informazioni o segnalazioni contatta @sAlb98.`,
         extras: { parse_mode: "Markdown" }
     };
 }
