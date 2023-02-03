@@ -1,32 +1,16 @@
 import { getBundleDetails, getBundleNames, getCourseNames, getNoteDetails } from "@libs/database";
-import { creatorOnly } from "@libs/middleware";
 import probe from "probe-image-size";
 import { Markup } from "telegraf";
-import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
-import { ExtraInvoice, NewInvoiceParameters } from "telegraf/typings/telegram-types";
-import { MessageData, MessageHandler } from ".";
-
-
-type InvoiceMessageOptions = {
-    channel: boolean
-}
+import { InlineKeyboardButton, InlineQueryResultArticle, InputInvoiceMessageContent } from "telegraf/typings/core/types/typegram";
+import { ExtraInvoice } from "telegraf/typings/telegram-types";
+import { MessageHandler } from ".";
 
 export type InvoicePayload = {
     course?: string
     bundle?: string
 }
 
-const courseList = async (itemNames: string[], options: InvoiceMessageOptions) : Promise<MessageData> => {
-    return {
-        text: `Clicca sul nome del corso/bundle per mandare il messaggio fattura ${options.channel ? '(MODALITÀ CANALE)' : ''}`,
-        extras: {
-            parse_mode: 'Markdown',
-            ...Markup.inlineKeyboard(itemNames.map(item => Markup.button.callback(item, item + (options.channel ? '-channel' : ''))), { columns: 2 })
-        }
-    };
-}
-
-const getInvoiceParams = async (course: string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
+const getInvoiceParams = async (course: string) : Promise<InputInvoiceMessageContent & ExtraInvoice> => {
     const { materia, prezzo, descrizione, url_foto, url_anteprima } = await getNoteDetails(course);
     const buttons: InlineKeyboardButton[] = [
         Markup.button.pay(`Acquista per €${(prezzo/100).toFixed(2).replace(".", ",")}`),
@@ -60,7 +44,7 @@ const getInvoiceParams = async (course: string) : Promise<NewInvoiceParameters &
     }
 }
 
-const getInvoiceBundleParams = async (name: string) : Promise<NewInvoiceParameters & ExtraInvoice> => {
+const getInvoiceBundleParams = async (name: string) : Promise<InputInvoiceMessageContent & ExtraInvoice> => {
     const { descrizione, materie_prezzi, url_foto } = await getBundleDetails(name);
     const prices = Object.values(materie_prezzi);
     const total = prices.reduce((tot, price) => tot + price, 0);
@@ -92,45 +76,48 @@ const getInvoiceBundleParams = async (name: string) : Promise<NewInvoiceParamete
 }
 
 export const handler : MessageHandler = async (bot) => {
-    const courses = await getCourseNames({ sorted: true });
-    const bundles = await getBundleNames({ sorted: true });
-    const bundles_displaynames = bundles.map(b => `Bundle ${b}`);
+    bot.on('inline_query', async (ctx) => {
+        /* Do not generate test invoices for users who are not the creator on test mode (no free notes for u) */
+        if(process.env.STAGE === 'dev' && ctx.from.id.toString() !== process.env.CREATOR_USERID)
+            return ctx.answerInlineQuery([]);
 
-    const invoiceCommands = [ 'invoice' ];
-    if(process.env.STAGE === 'prod')
-        invoiceCommands.push('invoicechannel')
+        let courses = await getCourseNames({ sorted: true });
+        let bundles = await getBundleNames({ sorted: true });
 
-    bot.command(invoiceCommands, creatorOnly, async (ctx) => {
-        const { text, extras } = await courseList([ ...courses, ...bundles_displaynames ], {
-            channel: ctx.message.text.includes('channel')
-        });
-        await ctx.reply(text, extras);
-    })
-
-    const actions = [ ...courses, ...bundles_displaynames ];
-    if(process.env.STAGE === 'prod')
-        actions.push(...actions.map(item => item+'-channel'));
-
-    bot.action(actions, creatorOnly, async (ctx) => {
-        const channel = ctx.callbackQuery.data.includes('-channel');
-        const item = ctx.callbackQuery.data.replace('-channel', '');
-
-        const { reply_markup, ...params } = item.includes('Bundle') ? await getInvoiceBundleParams(item.substring(7)) : await getInvoiceParams(item);
-        await ctx.telegram.sendInvoice(channel ? process.env.SHOP_CHANNEL : ctx.chat.id, params, { reply_markup });
-        await ctx.answerCbQuery();
-    })
-
-    bot.command('invoicechannelall', creatorOnly, async (ctx) => {
-        for(const course of courses) {
-            const { reply_markup, ...params } = await getInvoiceParams(course);
-            await ctx.telegram.sendInvoice(process.env.SHOP_CHANNEL, params, { reply_markup });
+        /* Filter courses and bundles by user query */
+        if(ctx.inlineQuery.query.length > 0) {
+            courses = courses.filter(c => `appunti ${c.toLowerCase()}`.includes(ctx.inlineQuery.query.toLowerCase()));
+            bundles = bundles.filter(b => `bundle ${b.toLowerCase()}`.includes(ctx.inlineQuery.query.toLowerCase()));
         }
 
-        for(const bundle of bundles) {
-            const { reply_markup, ...params } = await getInvoiceBundleParams(bundle);
-            await ctx.telegram.sendInvoice(process.env.SHOP_CHANNEL, params, { reply_markup });
-        }
+        /* Generate invoice messages for each unfiltered course/bundle */
+        const results = await Promise.all([
+            ...courses.map(async course => {
+                const { reply_markup, ...invoice_params } = await getInvoiceParams(course);
 
-        await ctx.reply("Done!");
-    })
+                return {
+                    type: 'article',
+                    id: course,
+                    title: `Appunti ${course}`,
+                    description: invoice_params.description,
+                    input_message_content: invoice_params,
+                    reply_markup
+                } as InlineQueryResultArticle;
+            }),
+            ...bundles.map(async bundle => {
+                const { reply_markup, ...invoice_params } = await getInvoiceBundleParams(bundle);
+
+                return {
+                    type: 'article',
+                    id: `bundle-${bundle}`,
+                    title: `Bundle ${bundle}`,
+                    description: invoice_params.description,
+                    input_message_content: invoice_params,
+                    reply_markup
+                } as InlineQueryResultArticle;
+            })
+        ]);
+
+        return ctx.answerInlineQuery(results);
+    });
 }
