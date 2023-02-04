@@ -1,12 +1,20 @@
 import { getFullNotesFileId } from "@libs/database";
 import { creatorOnly, } from "@libs/middleware";
 import { getCustomersTelegramUserIDs, groupBoughtNotesByUser } from "@libs/stripe";
-import { Context } from "telegraf";
-import { Update, User } from "telegraf/typings/core/types/typegram";
+import { Context, TelegramError } from "telegraf";
+import { Message, Update, User } from "telegraf/typings/core/types/typegram";
+import { ExtraPoll } from "telegraf/typings/telegram-types";
 import { MessageHandler } from ".";
+import wait from "wait";
 
 type AnnouncementParams = {
     [variable: string]: (userid: string) => Promise<string>
+}
+
+type PollParams = {
+    question: string,
+    options: string[],
+    extras?: ExtraPoll
 }
 
 /**
@@ -15,9 +23,10 @@ type AnnouncementParams = {
  * @param userids List of users ids whom to send the message.
  * @param course Course of which notes will be attached to the message. If this value is falsy or "All", no notes will be attached.
  * @param message Message template which may contain variables.
+ * @param pollParams If a poll should be sent, the parameters to be passed to the `sendPoll` function.
  * @param params Object that maps variable names inserted in the message template with functions that allow to retrieve the value different for each user.
  */
-const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course: string, message: string, params: AnnouncementParams): Promise<void> => {
+const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course: string, message: string, params: AnnouncementParams, pollParams?: PollParams): Promise<void> => {
     if(!userids.length) {
         ctx.reply('No recipients were found for this announcement.');
         return;
@@ -26,19 +35,33 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
     const failed: string[] = [];
     const courseNotesFileID = course && course !== "All" && await getFullNotesFileId(course);
 
+    let poll: Message.PollMessage;
+    if(pollParams)
+        poll = await ctx.replyWithPoll(pollParams.question, pollParams.options, pollParams.extras);
+
     for(const id of userids) {
-        try {
-            let compiledMessage = message;
-            for(const variable in params)
-                compiledMessage = compiledMessage.replace(variable, await params[variable](id))
-            if(course && course !== "All")
-                await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
-            else
-                await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
-        } catch (e) {
-            failed.push(id);
-            console.error(e);
-        }
+        let retry = true;
+        while(retry)
+            try {
+                let compiledMessage = message;
+                for(const variable in params)
+                    compiledMessage = compiledMessage.replace(variable, await params[variable](id))
+                if(course && course !== "All")
+                    await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
+                else
+                    await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
+                if(poll)
+                    await ctx.telegram.forwardMessage(id, ctx.from.id, poll.message_id);
+                retry = false;
+            } catch (e) {
+                if(e instanceof TelegramError && e.response.error_code === 429 && e.response.parameters.retry_after) {
+                    await wait(e.response.parameters.retry_after*1000);
+                } else {
+                    failed.push(id);
+                    retry = false;
+                }
+                console.error(e);
+            }
     }
 
     if(userids.length > failed.length)
@@ -87,8 +110,8 @@ export const handler : MessageHandler = async (bot) => {
         const args = ctx.message.text.split(' ');
         const after = new Date(args[1]);
         const message = 'Ciao %name%! Ricevi questo messaggio perchè nel periodo didattico passato hai acquistato gli appunti delle seguenti materie:\n%notes%\n\n'+
-                        'Chiedo giusto due minuti del tuo tempo per scrivere un piccolo commento che descriva come li hai trovati, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
-                        'Per farlo puoi scrivere direttamente in questa chat, oppure scrivimi @sAlb98.\n\n'+
+                        'Chiedo giusto un attimo del tuo tempo per rispondere al sondaggio qui sotto, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
+                        'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
                         'Grazie e buon proseguimento di studi!\n'+
                         '- AV';
         
@@ -112,6 +135,14 @@ export const handler : MessageHandler = async (bot) => {
                 return user.first_name;
             },
             "%notes%": async (userid) => userNotes[userid].map(course => `- **${course}**`).join('\n')
-        })
+        }, {
+            question: 'Quanto ti ritieni soddisfatto degli appunti?',
+            options: [
+                'Molto soddisfatto',
+                'Soddisfatto',
+                'Poco soddisfatto',
+                'Per niente soddisfatto'
+            ]
+        });
     })
 };
