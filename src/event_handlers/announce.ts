@@ -111,7 +111,7 @@ export const handler : MessageHandler = async (bot) => {
         const after = new Date(args[1]);
         const message = 'Ciao %name%! Ricevi questo messaggio perchè nel periodo didattico passato hai acquistato gli appunti delle seguenti materie:\n%notes%\n\n'+
                         'Chiedo giusto un attimo del tuo tempo per rispondere al sondaggio qui sotto, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
-                        'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
+                        'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati e su come migliorarli, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
                         'Grazie e buon proseguimento di studi!\n'+
                         '- AV';
         
