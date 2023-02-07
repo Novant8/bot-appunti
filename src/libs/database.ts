@@ -25,6 +25,10 @@ export type getBundleNamesOptions = {
     sorted: boolean
 }
 
+export type BundleCourses = {
+    [bundle: string]: string[]
+}
+
 export type Purchase = {
     tguser: string,
     courses: string[]
@@ -144,6 +148,17 @@ export const getBundleCourses = async (name: string): Promise<string[]> => {
     const res = await db.send(new QueryCommand(params));
 
     return Object.keys(res.Items[0].materie_prezzi.M);
+}
+
+export const getBundleCoursesMap = async (): Promise<BundleCourses> => {
+    const params : ScanCommandInput = {
+        TableName: "appunti-bundle",
+        ProjectionExpression: "nome, materie_prezzi"
+    }
+
+    const res = await db.send(new ScanCommand(params));
+
+    return Object.fromEntries(res.Items.map(b => [ b.nome.S, Object.keys(b.materie_prezzi.M) ]));
 }
 
 export const getBundlePrice = async (name: string): Promise<number> => {

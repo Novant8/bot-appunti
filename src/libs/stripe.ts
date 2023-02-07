@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { getBundleCourses, getCustomerIDs, getPurchases, Purchase } from './database';
+import { getBundleCoursesMap, getCustomerIDs, getPurchases, Purchase } from './database';
 import { InvoicePayload } from '@event_handlers/invoiceMessage';
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY, {
@@ -50,15 +50,16 @@ export const groupBoughtNotesByUser = async (after?: Date): Promise<UserNotes> =
         limit: 100
     });
 
+    const bundleCourses = await getBundleCoursesMap();
     const purchases: Purchase[] = [
         ...await getPurchases(after),
-        ...await Promise.all(intents.data.filter(pi => pi.status === 'succeeded').map(async pi => {
+        ...intents.data.filter(pi => pi.status === 'succeeded').map(pi => {
             const payload: InvoicePayload = JSON.parse(pi.metadata.payload);
             return {
                 tguser: pi.metadata.tguser,
-                courses: payload.bundle ? await getBundleCourses(payload.bundle) : [ payload.course ]
+                courses: payload.bundle ? bundleCourses[payload.bundle] : [ payload.course ]
             }
-        }))
+        })
     ];
 
     /* Build return object: group courses by users */
