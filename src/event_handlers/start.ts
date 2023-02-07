@@ -17,5 +17,9 @@ export const handler : MessageHandler = (bot) => {
     bot.start(privateOnly, async (ctx: Context<Update>) => {
         const { text, extras } = await startMessage(ctx.from.first_name);
         await ctx.reply(text, extras);
+
+        /* Notify creator of user */
+        const creator_msg = `User *${[ctx.from.first_name, ctx.from.last_name].join(' ')}* (ID *${ctx.from.id}*) has started me`;
+        await ctx.telegram.sendMessage(process.env.CREATOR_USERID, creator_msg, { parse_mode: 'Markdown' });
     });
 };
