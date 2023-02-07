@@ -1,4 +1,4 @@
-import { DynamoDBClient, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand, PutItemCommandInput, QueryCommand, QueryCommandInput, ScanCommand, ScanCommandInput, UpdateItemCommand, UpdateItemCommandInput } from '@aws-sdk/client-dynamodb';
 
 export type NoteDetails = {
     materia: string,
@@ -159,4 +159,23 @@ export const getBundlePrice = async (name: string): Promise<number> => {
 export const getBundleFullNotesFileIDs = async (name: string): Promise<string[]> => {
     const courses = await getBundleCourses(name);
     return Promise.all(courses.map(c => getFullNotesFileId(c)));
+}
+
+export const addPurchase = async (tguser: number, courses: string[]): Promise<void> => {
+    const params: PutItemCommandInput = {
+        TableName: "acquisti-appunti",
+        Item: {
+            tguser: {
+                N: tguser.toString()
+            },
+            timestamp: {
+                N: Date.now().toString()
+            },
+            courses: {
+                SS: courses
+            }
+        }
+    }
+
+    await db.send(new PutItemCommand(params));
 }

@@ -18,6 +18,7 @@ import { handler as updateFile } from './updateFile';
 import { handler as announce } from './announce';
 import { handler as generateToken } from './generateToken';
 import { handler as deleteMessage } from './deleteMessage';
+import { handler as addPurchase } from './addPurchase';
 
 export const handlers : MessageHandler[] = [
     start,
@@ -29,5 +30,6 @@ export const handlers : MessageHandler[] = [
     updateFile,
     announce,
     generateToken,
-    deleteMessage
+    deleteMessage,
+    addPurchase
 ]
