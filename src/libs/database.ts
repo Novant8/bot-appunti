@@ -25,6 +25,11 @@ export type getBundleNamesOptions = {
     sorted: boolean
 }
 
+export type Purchase = {
+    tguser: string,
+    courses: string[]
+}
+
 const db = new DynamoDBClient({
     region: "eu-south-1",
 })
@@ -178,4 +183,44 @@ export const addPurchase = async (tguser: number, courses: string[]): Promise<vo
     }
 
     await db.send(new PutItemCommand(params));
+}
+
+export const getCustomerIDs = async (after: Date): Promise<string[]> => {
+    const params : ScanCommandInput = {
+        TableName: "acquisti-appunti",
+        ProjectionExpression: "tguser",
+        FilterExpression: "#timestamp >= :after",
+        ExpressionAttributeNames: {
+            "#timestamp": "timestamp"
+        },
+        ExpressionAttributeValues: {
+            ":after": { N: after.getTime().toString() }
+        }
+    }
+
+    const res = await db.send(new ScanCommand(params));
+
+    return res.Items.filter((p, i) => res.Items.findIndex(p2 => p2.tguser.N === p.tguser.N) >= i)
+                    .map(i => i.tguser.N);
+}
+
+export const getPurchases = async (after: Date): Promise<Purchase[]> => {
+    const params : ScanCommandInput = {
+        TableName: "acquisti-appunti",
+        ProjectionExpression: "tguser, courses",
+        FilterExpression: "#timestamp >= :after",
+        ExpressionAttributeNames: {
+            "#timestamp": "timestamp"
+        },
+        ExpressionAttributeValues: {
+            ":after": { N: after.getTime().toString() }
+        }
+    }
+
+    const res = await db.send(new ScanCommand(params));
+
+    return res.Items.map(p => ({ 
+                        tguser: p.tguser.N,
+                        courses: p.courses.SS
+                     }));
 }
