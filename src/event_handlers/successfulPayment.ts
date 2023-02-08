@@ -6,6 +6,12 @@ export const handler: MessageHandler = (bot) => {
     bot.on("successful_payment", async (ctx) => {
         const invoice_payload: InvoicePayload = JSON.parse(ctx.message.successful_payment.invoice_payload);
 
+        console.log(
+            `Successful payment from user ${[ctx.from.first_name, ctx.from.last_name].join(' ')} (ID ${ctx.from.id}).`,
+            `${invoice_payload.bundle ? 'Bundle' : 'Course'} bought: ${invoice_payload.bundle || invoice_payload.course}.`,
+            `Amount: €${(ctx.message.successful_payment.total_amount/100).toFixed(2)}`
+        );
+
         if(invoice_payload.course) {
             const file_id = await getFullNotesFileId(invoice_payload.course);
             await ctx.replyWithDocument(file_id, {

@@ -50,17 +50,20 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
                     await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
                 else
                     await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
+                console.log(`Sent message to user ${id}.`);
                 if(poll)
                     await ctx.telegram.forwardMessage(id, ctx.from.id, poll.message_id);
+                console.log(`Sent poll to user ${id}.`);
                 retry = false;
             } catch (e) {
                 if(e instanceof TelegramError && e.response.error_code === 429 && e.response.parameters.retry_after) {
+                    console.log(`Encountered 429 error on user ${id}. Waiting for ${e.response.parameters.retry_after} seconds...`);
                     await wait(e.response.parameters.retry_after*1000);
                 } else {
+                    console.warn(`Failed to send message to user ${id}. ${e.message}`);
                     failed.push(id);
                     retry = false;
                 }
-                console.error(e);
             }
     }
 
@@ -77,8 +80,6 @@ export const handler : MessageHandler = async (bot) => {
         const course = args[1].replace(/_/g, ' ');
         const after = new Date(args[2]);
         const message = ctx.message.text.substring(args[0].length + args[1].length + args[2].length + 2);
-        
-        console.log(course);
 
         if(isNaN(after.getTime()))
             return ctx.reply("Invalid date provided");

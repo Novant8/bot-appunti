@@ -7,6 +7,12 @@ export const handler: MessageHandler = (bot) => {
         const { course, bundle }: InvoicePayload  = JSON.parse(ctx.preCheckoutQuery.invoice_payload)
         let price = 0;
 
+        console.log(
+            `Pre-checkout query from user ${[ctx.from.first_name, ctx.from.last_name].join(' ')} (ID ${ctx.from.id}).`,
+            `${bundle ? 'Bundle' : 'Course'}: ${bundle || course}.`,
+            `Amount: €${(ctx.preCheckoutQuery.total_amount/100).toFixed(2)}`
+        );
+
         if(course)
             price = (await getNoteDetails(course)).prezzo;
         else if (bundle)
