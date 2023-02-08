@@ -40,21 +40,26 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
         poll = await ctx.replyWithPoll(pollParams.question, pollParams.options, pollParams.extras);
 
     for(const id of userids) {
-        let retry = true;
-        while(retry)
+        let retry_msg = true;
+        let retry_poll = !!poll;
+        while(retry_msg || retry_poll)
             try {
-                let compiledMessage = message;
-                for(const variable in params)
-                    compiledMessage = compiledMessage.replace(variable, await params[variable](id))
-                if(course && course !== "All")
-                    await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
-                else
-                    await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
-                console.log(`Sent message to user ${id}.`);
-                if(poll)
+                if(retry_msg) {
+                    let compiledMessage = message;
+                    for(const variable in params)
+                        compiledMessage = compiledMessage.replace(variable, await params[variable](id))
+                    if(courseNotesFileID)
+                        await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
+                    else
+                        await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
+                    console.log(`Sent message to user ${id}.`);
+                    retry_msg = false;
+                }
+                if(retry_poll) {
                     await ctx.telegram.forwardMessage(id, ctx.from.id, poll.message_id);
-                console.log(`Sent poll to user ${id}.`);
-                retry = false;
+                    console.log(`Sent poll to user ${id}.`);
+                    retry_poll = false;
+                }
             } catch (e) {
                 if(e instanceof TelegramError && e.response.error_code === 429 && e.response.parameters.retry_after) {
                     console.log(`Encountered 429 error on user ${id}. Waiting for ${e.response.parameters.retry_after} seconds...`);
@@ -62,7 +67,8 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
                 } else {
                     console.warn(`Failed to send message to user ${id}. ${e.message}`);
                     failed.push(id);
-                    retry = false;
+                    retry_msg = false;
+                    retry_poll = false;
                 }
             }
     }
