@@ -47,7 +47,7 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
                 if(retry_msg) {
                     let compiledMessage = message;
                     for(const variable in params)
-                        compiledMessage = compiledMessage.replace(variable, await params[variable](id))
+                        compiledMessage = compiledMessage.replace(new RegExp(variable, 'g'), await params[variable](id));
                     if(courseNotesFileID)
                         await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
                     else
