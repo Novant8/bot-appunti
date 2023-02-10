@@ -19,7 +19,7 @@ export const handler : MessageHandler = (bot) => {
         await ctx.reply(text, extras);
 
         /* Notify creator of user */
-        const creator_msg = `User [${[ctx.from.first_name, ctx.from.last_name].join(' ')}*](tg://user?id=${ctx.from.id}) (ID *${ctx.from.id}*) has started me`;
+        const creator_msg = `User [${[ctx.from.first_name, ctx.from.last_name].join(' ')}](tg://user?id=${ctx.from.id}) (ID *${ctx.from.id}*) has started me`;
         await ctx.telegram.sendMessage(process.env.CREATOR_USERID, creator_msg, { parse_mode: 'Markdown' });
     });
 };
