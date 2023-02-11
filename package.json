@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.118.0",
-    "dotenv": "^16.0.1",
     "jsonwebtoken": "^9.0.0",
     "probe-image-size": "^7.2.3",
     "stripe": "^11.4.0",
@@ -25,6 +24,7 @@
     "@types/node": "^14.14.25",
     "esbuild": "^0.14.11",
     "serverless": "^3.0.0",
+    "serverless-dotenv-plugin": "^4.0.2",
     "serverless-esbuild": "^1.23.3",
     "ts-node": "^10.4.0",
     "tsconfig-paths": "^3.9.0",

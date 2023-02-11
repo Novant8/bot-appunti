@@ -6,7 +6,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: `bot-appunti${process.env.TELEGRAM_TOKEN}/telegram`
+        path: 'bot-appunti${env:TELEGRAM_TOKEN}/telegram'
       },
     },
   ],
