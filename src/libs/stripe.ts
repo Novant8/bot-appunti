@@ -12,12 +12,13 @@ export type UserNotes = {
 
 /**
  * Fetches all users who have bought any notes after a given date from Stripe payments.
- * @param after Date after which payments should be fetched. If not specified, all payments are fetched.
+ * @param from Date after which payments should be fetched. If not specified, date will be epoch.
+ * @param to Date before which payments should be fetched. If not specified, date will be now.
  * @returns List of user ids that bought any notes after the given date
  */
-export const getCustomersTelegramUserIDs = async (after?: Date): Promise<string[]> => {
+export const getCustomersTelegramUserIDs = async (from?: Date, to?: Date): Promise<string[]> => {
     const intents = await stripe.paymentIntents.list({
-        created: after && { gte: Math.round(after.getTime()/1000) },
+        created: { gte: from && Math.round(from.getTime()/1000), lte: to && Math.round(to.getTime()/1000) },
         limit: 100
     });
 
@@ -25,7 +26,7 @@ export const getCustomersTelegramUserIDs = async (after?: Date): Promise<string[
     return [
         ...intents.data.filter((pi, i) => pi.status === 'succeeded' && intents.data.findIndex(pi2 => pi2.metadata.tguser === pi.metadata.tguser) >= i)
                        .map(pi => pi.metadata.tguser),
-        ...(await getCustomerIDs(after)).filter(id => !intents.data.find(pi => pi.status === 'succeeded' && pi.metadata.tguser === id))
+        ...(await getCustomerIDs(from, to)).filter(id => !intents.data.find(pi => pi.status === 'succeeded' && pi.metadata.tguser === id))
     ];
 };
 
@@ -41,18 +42,19 @@ export const userIsCustomer = async (userid: string): Promise<boolean> => {
 
 /**
  * Fetches all users who have bought any notes after a given date from Stripe payments and maps each of them with a list of bought notes.
- * @param after Date after which payments should be fetched. If not specified, all payments are fetched.
+ * @param from Date after which payments should be fetched. If not specified, date will be epoch.
+ * @param to Date before which payments should be fetched. If not specified, date will be now.
  * @returns An object which maps each user with a list of notes bought after the given date
  */
-export const groupBoughtNotesByUser = async (after?: Date): Promise<UserNotes> => {
+export const groupBoughtNotesByUser = async (from?: Date, to?: Date): Promise<UserNotes> => {
     const intents = await stripe.paymentIntents.list({
-        created: after && { gte: Math.round(after.getTime()/1000) },
+        created: { gte: from && Math.round(from.getTime()/1000), lte: to && Math.round(to.getTime()/1000) },
         limit: 100
     });
 
     const bundleCourses = await getBundleCoursesMap();
     const purchases: Purchase[] = [
-        ...await getPurchases(after),
+        ...await getPurchases(from, to),
         ...intents.data.filter(pi => pi.status === 'succeeded').map(pi => {
             const payload: InvoicePayload = JSON.parse(pi.metadata.payload);
             return {

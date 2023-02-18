@@ -115,20 +115,24 @@ export const handler : MessageHandler = async (bot) => {
 
     bot.command('askfeedback', creatorOnly, async (ctx) => {
         const args = ctx.message.text.split(' ');
-        const after = new Date(args[1]);
+        const from = new Date(args[1]);
+        const to = args[2] && new Date(args[2]);
         const message = 'Ciao %name%! Ricevi questo messaggio perchè nel periodo didattico passato hai acquistato gli appunti delle seguenti materie:\n%notes%\n\n'+
                         'Chiedo giusto un attimo del tuo tempo per rispondere al sondaggio qui sotto, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
                         'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati e su come migliorarli, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
                         'Grazie e buon proseguimento di studi!\n'+
                         '- AV';
         
-        if(isNaN(after.getTime()))
-            return ctx.reply("Invalid date provided");
+        if(isNaN(from.getTime()) || (to && isNaN(to.getTime())))
+            return ctx.reply("Invalid date(s) provided");
+
+        if(to && from > to)
+            return ctx.reply("Invalid date interval");
 
         if(message.length === 0)
             return ctx.reply("No message given");
 
-        const userNotes = await groupBoughtNotesByUser(after);
+        const userNotes = await groupBoughtNotesByUser(from, to);
 
         let userids: string[];
         if(process.env.STAGE === 'dev')

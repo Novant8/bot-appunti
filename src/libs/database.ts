@@ -200,16 +200,17 @@ export const addPurchase = async (tguser: number, courses: string[]): Promise<vo
     await db.send(new PutItemCommand(params));
 }
 
-export const getCustomerIDs = async (after: Date): Promise<string[]> => {
+export const getCustomerIDs = async (from: Date = new Date(0), to: Date = new Date()): Promise<string[]> => {
     const params : ScanCommandInput = {
         TableName: "acquisti-appunti",
         ProjectionExpression: "tguser",
-        FilterExpression: "#timestamp >= :after",
+        FilterExpression: "#timestamp BETWEEN :from AND :to",
         ExpressionAttributeNames: {
             "#timestamp": "timestamp"
         },
         ExpressionAttributeValues: {
-            ":after": { N: after.getTime().toString() }
+            ":from": { N: from.getTime().toString() },
+            ":to": { N: to.getTime().toString() }
         }
     }
 
@@ -219,16 +220,17 @@ export const getCustomerIDs = async (after: Date): Promise<string[]> => {
                     .map(i => i.tguser.N);
 }
 
-export const getPurchases = async (after: Date): Promise<Purchase[]> => {
+export const getPurchases = async (from: Date = new Date(0), to: Date = new Date()): Promise<Purchase[]> => {
     const params : ScanCommandInput = {
         TableName: "acquisti-appunti",
         ProjectionExpression: "tguser, courses",
-        FilterExpression: "#timestamp >= :after",
+        FilterExpression: "#timestamp BETWEEN :from AND :to",
         ExpressionAttributeNames: {
             "#timestamp": "timestamp"
         },
         ExpressionAttributeValues: {
-            ":after": { N: after.getTime().toString() }
+            ":from": { N: from.getTime().toString() },
+            ":to": { N: to.getTime().toString() }
         }
     }
 
