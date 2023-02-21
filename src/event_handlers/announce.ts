@@ -118,8 +118,8 @@ export const handler : MessageHandler = async (bot) => {
         const from = new Date(args[1]);
         const to = args[2] && new Date(args[2]);
         const message = 'Ciao %name%! Ricevi questo messaggio perchè nel periodo didattico passato hai acquistato gli appunti delle seguenti materie:\n%notes%\n\n'+
-                        'Chiedo giusto un attimo del tuo tempo per rispondere al sondaggio qui sotto, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
-                        'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati e su come migliorarli, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
+                        'Se li hai usati per sostenere gli esami di questo periodo, chiedo giusto un attimo del tuo tempo per rispondere al sondaggio qui sotto, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
+                        'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati e su come eventualmente migliorarli, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
                         'Grazie e buon proseguimento di studi!\n'+
                         '- AV';
         
@@ -147,12 +147,12 @@ export const handler : MessageHandler = async (bot) => {
             },
             "%notes%": async (userid) => userNotes[userid].map(course => `- **${course}**`).join('\n')
         }, {
-            question: 'Quanto ti ritieni soddisfatto degli appunti?',
+            question: 'Quanto ti ritieni soddisfatto/a degli appunti acquistati?',
             options: [
-                'Molto soddisfatto',
-                'Soddisfatto',
-                'Poco soddisfatto',
-                'Per niente soddisfatto'
+                'Molto soddisfatto/a',
+                'Soddisfatto/a',
+                'Poco soddisfatto/a',
+                'Per niente soddisfatto/a'
             ]
         });
     })
