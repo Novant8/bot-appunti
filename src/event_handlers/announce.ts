@@ -145,7 +145,7 @@ export const handler : MessageHandler = async (bot) => {
                 const user = await ctx.telegram.getChat(userid) as unknown as User;
                 return user.first_name;
             },
-            "%notes%": async (userid) => userNotes[userid].map(course => `- **${course}**`).join('\n')
+            "%notes%": async (userid) => userNotes[userid].map(course => `- *${course}*`).join('\n')
         }, {
             question: 'Quanto ti ritieni soddisfatto/a degli appunti acquistati?',
             options: [
