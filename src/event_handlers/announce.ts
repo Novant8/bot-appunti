@@ -48,16 +48,17 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
                     let compiledMessage = message;
                     for(const variable in params)
                         compiledMessage = compiledMessage.replace(new RegExp(variable, 'g'), await params[variable](id));
+                    let msg: Message;
                     if(courseNotesFileID)
-                        await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
+                        msg = await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
                     else
-                        await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
-                    console.log(`Sent message to user ${id}.`);
+                        msg = await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
+                    console.log(`Sent message to user ${id}. Message ID: ${msg.message_id}.`);
                     retry_msg = false;
                 }
                 if(retry_poll) {
-                    await ctx.telegram.forwardMessage(id, ctx.from.id, poll.message_id);
-                    console.log(`Sent poll to user ${id}.`);
+                    const msg = await ctx.telegram.forwardMessage(id, ctx.from.id, poll.message_id);
+                    console.log(`Sent poll to user ${id}. Message ID: ${msg.message_id}.`);
                     retry_poll = false;
                 }
             } catch (e) {

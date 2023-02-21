@@ -8,8 +8,9 @@ export const handler : MessageHandler = (bot) => {
 
         if(typeof splitLink === 'undefined')
             return ctx.reply('No message link provided.');
-
-        const chat = '@'+splitLink[splitLink.length-2];
+        
+        const chatID = splitLink[splitLink.length-2];    
+        const chat = isNaN(parseInt(chatID)) ? '@'+chatID : chatID;
         const msgid = parseInt(splitLink[splitLink.length-1]);
 
         if(isNaN(msgid))
