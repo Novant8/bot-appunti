@@ -22,12 +22,14 @@ export const getCustomersTelegramUserIDs = async (from?: Date, to?: Date): Promi
         limit: 100
     });
 
-    /* Filter failed payments and return unique TG user IDs */
-    return [
-        ...intents.data.filter((pi, i) => pi.status === 'succeeded' && intents.data.findIndex(pi2 => pi2.metadata.tguser === pi.metadata.tguser) >= i)
+    /* Filter out failed payments and return distinct TG user IDs using a Set */
+    const userids_set = new Set([
+        ...intents.data.filter(pi => pi.status === 'succeeded')
                        .map(pi => pi.metadata.tguser),
-        ...(await getCustomerIDs(from, to)).filter(id => !intents.data.find(pi => pi.status === 'succeeded' && pi.metadata.tguser === id))
-    ];
+        ...await getCustomerIDs(from, to)
+    ])
+
+    return Array.from(userids_set)
 };
 
 /**

@@ -216,8 +216,10 @@ export const getCustomerIDs = async (from: Date = new Date(0), to: Date = new Da
 
     const res = await db.send(new ScanCommand(params));
 
-    return res.Items.filter((p, i) => res.Items.findIndex(p2 => p2.tguser.N === p.tguser.N) >= i)
-                    .map(i => i.tguser.N);
+    /* Use a Set to return distinct user IDs */
+    const userids_set = new Set(res.Items.map(i => i.tguser.N))
+
+    return Array.from(userids_set)
 }
 
 export const getPurchases = async (from: Date = new Date(0), to: Date = new Date()): Promise<Purchase[]> => {
