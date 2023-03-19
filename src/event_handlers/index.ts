@@ -16,7 +16,7 @@ import { handler as preCheckout } from './preCheckout';
 import { handler as successfulPayment } from './successfulPayment';
 import { handler as updateFile } from './updateFile';
 import { handler as announce } from './announce';
-import { handler as generateToken } from './generateToken';
+/* import { handler as generateToken } from './generateToken'; // Disabled feature */
 import { handler as deleteMessage } from './deleteMessage';
 import { handler as addPurchase } from './addPurchase';
 
@@ -29,7 +29,7 @@ export const handlers : MessageHandler[] = [
     invoiceMessage,
     updateFile,
     announce,
-    generateToken,
+    // generateToken,
     deleteMessage,
     addPurchase
 ]
