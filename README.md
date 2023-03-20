@@ -1,95 +1,101 @@
-# Serverless - AWS Node.js Typescript
+# Bot Appunti (Notes Bot)
 
-This project has been generated using the `aws-nodejs-typescript` template from the [Serverless framework](https://www.serverless.com/).
+### **A serverless Telegram bot for selling university notes.**
 
-For detailed instructions, please refer to the [documentation](https://www.serverless.com/framework/docs/providers/aws/).
+This bot is based on:
+* [Telegraf](https://github.com/telegraf/telegraf) as the bot's main framework.
+* [Stripe](https://stripe.com/) for handling payments.
+* [AWS DynamoDB](https://aws.amazon.com/it/dynamodb/) for storing notes' information.
+* [AWS Lambda](https://aws.amazon.com/it/lambda/) for handling events sent by Telegram through webhooks.
 
-## Installation/deployment instructions
+**A working example can be found in [this Telegram channel](https://t.me/appuntiTriennaleIngInf) and at [this user](https://t.me/VernaAppuntiBot).**
 
-Depending on your preferred package manager, follow the instructions below to deploy your project.
+Most strings and attributes are written in Italian 🇮🇹.
 
-> **Requirements**: NodeJS `lts/fermium (v.14.15.0)`. If you're using [nvm](https://github.com/nvm-sh/nvm), run `nvm use` to ensure you're using the same Node version in local and in your lambda's runtime.
+## Features
 
-### Using NPM
+* **Process payments** directly from Telegram using their [Payments 2.0](https://core.telegram.org/bots/payments) API and Stripe. When a payment is successful, the user immediately receives the notes' file as a private message.
+* **Upload and update notes' files**, which are stored in Telegram's servers.
+* **Send announcements** to every user who has already bought notes of certain (or all) courses. Useful to notify updates to your notes.
+* **Send user satisfaction polls** to quantify how users liked your notes.
+* **Automatic forwarding** to the bot's creator of all private messages sent by any user.
+* **Separate behaviour for dev and production stages**.
 
-- Run `npm i` to install the project dependencies
-- Run `npx sls deploy` to deploy this stack to AWS
+## Commands
 
-### Using Yarn
+The following commands can **only be executed by the creator of the bot**:
+| Command | Description |
+| --- | --- |
+| `/addpurchase <tg_userid> <course>` | Manually adds a purchase to your DynamoDB database. This may be the case when the customer uses a payment method which can't be saved automatically by Stripe. |
+| `/announce <course> <date> <message>` | Announces a message to users who have bought notes of a given course after `date`. `course` may also be `All` to send the announcement to every customer. `date` may be specified in any format supported by Javascript's `Date` object. To include the user's first name inside the `message`, use the variable `%name%`. |
+| `/askfeedback <from> <to>` | Sends a satisfaction poll to all users who have bought notes of any course between `from` and `to` timestamps/dates. The poll is also sent to the creator, so they can view the results.  |
+| `/deletemessage <url>` | Deletes a message given its URL. The bot must have permissions to delete the message. |
 
-- Run `yarn` to install the project dependencies
-- Run `yarn sls deploy` to deploy this stack to AWS
+To **update a file**, the creator can privately send a document to the bot with the name of the course as the caption.
 
-## Test your service
 
-This template contains a single lambda function triggered by an HTTP request made on the provisioned API Gateway REST API `/hello` route with `POST` method. The request body must be provided as `application/json`. The body structure is tested by API Gateway against `src/functions/hello/schema.ts` JSON-Schema definition: it must contain the `name` property.
+The bot also supports [**inline mode**](https://core.telegram.org/bots/inline) to send **invoice messages** related to notes and bundles. This can be done by any user.
 
-- requesting any other path than `/hello` with any other method than `POST` will result in API Gateway returning a `403` HTTP error code
-- sending a `POST` request to `/hello` with a payload **not** containing a string property named `name` will result in API Gateway returning a `400` HTTP error code
-- sending a `POST` request to `/hello` with a payload containing a string property named `name` will result in API Gateway returning a `200` HTTP status code with a message saluting the provided name and the detailed event processed by the lambda
+## Environment variables
 
-> :warning: As is, this template, once deployed, opens a **public** endpoint within your AWS account resources. Anybody with the URL can actively execute the API Gateway endpoint and the corresponding lambda. You should protect this endpoint with the authentication method of your choice.
+The environment variables to be added to a `.env` file are the following:
+| Variable | Notes |
+| --- | --- |
+| `STAGE` | Can be `dev` or `prod`. The bot behaves differently depending on the current working stage. |
+| `TELEGRAM_TOKEN` | Sent to you by BotFather after creating the new bot. |
+| `PAYMENT_TOKEN` | Sent to you by BotFather after linking Stripe to your bot. |
+| `CREATOR_USERID` | |
+| `SHOP_CHANNEL` | Name or ID of the channel that you intend to use as showcase for your notes. [This channel](https://t.me/appuntiTriennaleIngInf) can serve as an example. |
+| `SHOP_CHANNEL_LINK` | |
+| `STRIPE_API_KEY`| Obtained from your Stripe dashboard. |
 
-### Locally
+## Database
 
-In order to test the hello function locally, run the following command:
+This project uses a DynamoDB database to store notes' and additional purchases' information. The following tables need to be created:
+* `appunti` (Notes):
+    | Attribute | Type | Description |
+    | --- | --- | --- |
+    | `materia` (course) | String (*partition key*) | Name of the course the notes belong to. |
+    | `descrizione` (description) | String | Brief description of the notes. |
+    | `prezzo` (price) | Number | Price of the notes specified as the number of cents (must be an integer). |
+    | `fileId_full` | String | ID of the notes' file stores in Telegram's servers. |
+    | `fileId_full_DEV` | String | Same as `fileId_full`, but this attribute is used only in development stage. |
+    | `url_anteprima` (url_preview) | String | URL of the message containing a preview of the notes (provided by Telegram). |
+    | `ordine` (order) | Number | Specifies in which order the notes should be listed. |
+    | `url_foto` (url_image) | String | URL containing the image to be displayed inside the invoice messsage. |
 
-- `npx sls invoke local -f hello --path src/functions/hello/mock.json` if you're using NPM
-- `yarn sls invoke local -f hello --path src/functions/hello/mock.json` if you're using Yarn
+* `appunti-bundle` (note-bundles):
+    | Attribute | Type | Description |
+    | --- | --- | --- |
+    | `nome` (name) | String (*partition key*) | Name of the bundle. |
+    | `descrizione` (description) | String | Brief description of the bundle |
+    | `materie_prezzi` (course_prices) | Map<String, Number> | Object that maps each course contained in the bundle and its contribute to the total price: `{ course: price }`. `course` refers to the name of the course, as specified in the `appunti` (notes) table. |
+    | `ordine` (order) | Number | Specifies in which order the bundles should be listed. (Should be relative to only bundles, bundles are *always* displayed after notes.) |
+    | `url_foto` (url_image) | String | URL containing the image to be displayed inside the invoice messsage. |
 
-Check the [sls invoke local command documentation](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local/) for more information.
 
-### Remotely
+* `acquisti-appunti` (notes-purchases):
+    | Attribute | Type | Description |
+    | --- | --- | --- |
+    | `materia` (course) | String (*partition key*) | Name of the course, as specified in the `appunti` (notes) table. |
+    | `timestamp` | Number (*sort key*) | Time of purchase. |
+    | `tguser` | Number | Telegram ID of the customer. |
 
-Copy and replace your `url` - found in Serverless `deploy` command output - and `name` parameter in the following `curl` command in your terminal or in Postman to test your newly deployed application.
+## Setup
 
-```
-curl --location --request POST 'https://myApiEndpoint/dev/hello' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "name": "Frederic"
-}'
-```
+1. Setup and populate the database as specified [here](#database).
 
-## Template features
+2. [Create a new Telegram bot](https://core.telegram.org/bots/tutorial).
 
-### Project structure
+2. Create the files `.env.dev` and `.env.prod` inside the root folder and setup the environment variables as specified [here](#environment-variables).
 
-The project code base is mainly located within the `src` folder. This folder is divided in:
+3. Deploy the project to AWS:
+    ```
+    serverless deploy -s <stage>
+    ```
 
-- `functions` - containing code base and configuration for your lambda functions
-- `libs` - containing shared code base between your lambdas
-
-```
-.
-├── src
-│   ├── functions               # Lambda configuration and source code folder
-│   │   ├── hello
-│   │   │   ├── handler.ts      # `Hello` lambda source code
-│   │   │   ├── index.ts        # `Hello` lambda Serverless configuration
-│   │   │   ├── mock.json       # `Hello` lambda input parameter, if any, for local invocation
-│   │   │   └── schema.ts       # `Hello` lambda input event JSON-Schema
-│   │   │
-│   │   └── index.ts            # Import/export of all lambda configurations
-│   │
-│   └── libs                    # Lambda shared code
-│       └── apiGateway.ts       # API Gateway specific helpers
-│       └── handlerResolver.ts  # Sharable library for resolving lambda handlers
-│       └── lambda.ts           # Lambda middleware
-│
-├── package.json
-├── serverless.ts               # Serverless service file
-├── tsconfig.json               # Typescript compiler configuration
-├── tsconfig.paths.json         # Typescript paths
-└── webpack.config.js           # Webpack configuration
-```
-
-### 3rd party libraries
-
-- [json-schema-to-ts](https://github.com/ThomasAribart/json-schema-to-ts) - uses JSON-Schema definitions used by API Gateway for HTTP request validation to statically generate TypeScript types in your lambda's handler code base
-- [middy](https://github.com/middyjs/middy) - middleware engine for Node.Js lambda. This template uses [http-json-body-parser](https://github.com/middyjs/middy/tree/master/packages/http-json-body-parser) to convert API Gateway `event.body` property, originally passed as a stringified JSON, to its corresponding parsed object
-- [@serverless/typescript](https://github.com/serverless/typescript) - provides up-to-date TypeScript definitions for your `serverless.ts` service file
-
-### Advanced usage
-
-Any tsconfig.json can be used, but if you do, set the environment variable `TS_NODE_CONFIG` for building the application, eg `TS_NODE_CONFIG=./tsconfig.app.json npx serverless webpack`
+4. Setup a webhook on Telegram's end with the following URL:
+    ```
+    https://api.telegram.org/bot<token>/setWebhook?url=<api_endpoint>
+    ```
+    The API endpoint is provided by the output of the `serverless` command executed previously.
