@@ -1,10 +1,11 @@
 import { getFullNotesFileId } from "@libs/database";
 import { creatorOnly, } from "@libs/middleware";
 import { getCustomersTelegramUserIDs, groupBoughtNotesByUser } from "@libs/stripe";
-import { Context, TelegramError } from "telegraf";
-import { Message, Update, User } from "telegraf/typings/core/types/typegram";
-import { ExtraPoll } from "telegraf/typings/telegram-types";
-import { MessageHandler } from ".";
+import { TelegramError } from "telegraf";
+import type { Context } from "telegraf";
+import type { Message, Update, User } from "telegraf/typings/core/types/typegram";
+import type { ExtraPoll } from "telegraf/typings/telegram-types";
+import type { MessageHandler } from ".";
 import wait from "wait";
 
 type AnnouncementParams = {

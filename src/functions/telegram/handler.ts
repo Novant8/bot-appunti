@@ -1,4 +1,5 @@
-import { BasicHandler, errorResponse, okResponse } from '@libs/api-gateway';
+import { errorResponse, okResponse } from '@libs/api-gateway';
+import type { BasicHandler } from '@libs/api-gateway';
 import { handlers } from '@event_handlers/index';
 import { Telegraf } from 'telegraf';
 

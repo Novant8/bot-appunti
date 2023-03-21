@@ -1,5 +1,5 @@
 import { TelegramError } from "telegraf";
-import { MessageHandler } from ".";
+import type { MessageHandler } from ".";
 
 export const handler : MessageHandler = async (bot) => {
     bot.on('message', async (ctx, next) => {

@@ -1,9 +1,10 @@
 import { getBundleFullNotesFileIDs, getFullNotesFileId } from "@libs/database";
-import { MessageHandler } from ".";
-import { InvoicePayload } from "./invoiceMessage";
+import { message } from "telegraf/filters";
+import type { MessageHandler } from ".";
+import type { InvoicePayload } from "./invoiceMessage";
 
 export const handler: MessageHandler = (bot) => {
-    bot.on("successful_payment", async (ctx) => {
+    bot.on(message('successful_payment'), async (ctx) => {
         const invoice_payload: InvoicePayload = JSON.parse(ctx.message.successful_payment.invoice_payload);
 
         console.log(

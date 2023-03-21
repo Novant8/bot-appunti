@@ -1,5 +1,5 @@
 import { TelegramError } from "telegraf";
-import { MessageHandler } from ".";
+import type { MessageHandler } from ".";
 import { creatorOnly } from "@libs/middleware";
 
 export const handler : MessageHandler = (bot) => {

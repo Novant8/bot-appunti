@@ -1,10 +1,12 @@
 import { getCourseNames, updateNotesFile } from "@libs/database";
 import { creatorOnly } from "@libs/middleware";
-import { MessageHandler } from ".";
+import type { MessageHandler } from ".";
+import { message } from "telegraf/filters";
+import { Message } from "telegraf/types";
 
 export const handler: MessageHandler = (bot) => {
-    bot.on('document', creatorOnly, async (ctx) => {
-        const course = ctx.message.caption;
+    bot.on(message('document'), creatorOnly, async (ctx) => {
+        const course = (ctx.message as Message.DocumentMessage ).caption;
         const courses = await getCourseNames();
         if(!courses.includes(course))
             return ctx.reply(`Corso \`${course}\` invalido. Corsi disponibili:\n${courses.map(c => `\`${c}\``).join('\n')}`, { parse_mode: 'Markdown' });

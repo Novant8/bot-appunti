@@ -1,5 +1,5 @@
-import { Telegraf } from 'telegraf';
-import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+import type { Telegraf } from 'telegraf';
+import type { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 
 export type MessageHandler = (bot: Telegraf) => void;
 

@@ -1,6 +1,6 @@
-import { MessageHandler } from ".";
+import type { MessageHandler } from ".";
 import { getBundlePrice, getNoteDetails } from "@libs/database";
-import { InvoicePayload } from "./invoiceMessage";
+import type { InvoicePayload } from "./invoiceMessage";
 
 export const handler: MessageHandler = (bot) => {
     bot.on("pre_checkout_query", async (ctx) => {

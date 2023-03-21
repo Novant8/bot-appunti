@@ -1,6 +1,6 @@
 import { addPurchase, getCourseNames } from "@libs/database";
 import { creatorOnly } from "@libs/middleware";
-import { MessageHandler } from ".";
+import type { MessageHandler } from ".";
 
 export const handler : MessageHandler = async (bot) => {
     bot.command('addpurchase', creatorOnly, async (ctx) => {

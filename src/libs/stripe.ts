@@ -1,6 +1,6 @@
 import Stripe from 'stripe'
 import { getBundleCoursesMap, getCustomerIDs, getPurchases, Purchase } from './database';
-import { InvoicePayload } from '@event_handlers/invoiceMessage';
+import type { InvoicePayload } from '@event_handlers/invoiceMessage';
 
 const stripe = new Stripe(process.env.STRIPE_API_KEY, {
     apiVersion: '2022-11-15'

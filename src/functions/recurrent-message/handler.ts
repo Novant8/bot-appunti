@@ -1,7 +1,8 @@
-import { BasicHandler, errorResponse, okResponse } from '@libs/api-gateway';
+import { errorResponse, okResponse } from '@libs/api-gateway';
+import type { BasicHandler } from '@libs/api-gateway';
 import { Telegraf } from 'telegraf';
 import { verify, JsonWebTokenError } from 'jsonwebtoken'
-import { MessageEntity } from 'telegraf/typings/core/types/typegram';
+import type { MessageEntity } from 'telegraf/typings/core/types/typegram';
 
 type RecurringMessageBody = {
     token: string

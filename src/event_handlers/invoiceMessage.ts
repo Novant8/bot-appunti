@@ -1,9 +1,9 @@
 import { getBundleDetails, getBundleNames, getCourseNames, getNoteDetails } from "@libs/database";
 import probe from "probe-image-size";
 import { Markup } from "telegraf";
-import { InlineKeyboardButton, InlineQueryResultArticle, InputInvoiceMessageContent } from "telegraf/typings/core/types/typegram";
-import { ExtraInvoice } from "telegraf/typings/telegram-types";
-import { MessageHandler } from ".";
+import type { InlineKeyboardButton, InlineQueryResultArticle, InputInvoiceMessageContent } from "telegraf/typings/core/types/typegram";
+import type { ExtraInvoice } from "telegraf/typings/telegram-types";
+import type { MessageHandler } from ".";
 
 export type InvoicePayload = {
     course?: string

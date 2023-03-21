@@ -1,5 +1,5 @@
 import { sign } from "jsonwebtoken";
-import { MessageHandler } from ".";
+import type { MessageHandler } from ".";
 import { creatorOnly, privateOnly } from "@libs/middleware";
 
 export const handler : MessageHandler = async (bot) => {
