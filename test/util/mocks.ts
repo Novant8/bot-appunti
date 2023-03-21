@@ -1,12 +1,36 @@
 import { jest } from '@jest/globals';
 import { Telegraf, Telegram } from "telegraf";
 import { handlers } from '@event_handlers/index';
-import type { Message, MessageEntity, Update } from 'telegraf/types'
+import type { Chat, Message, MessageEntity, Update, User } from 'telegraf/types'
+
+const person: User = {
+    id: 1,
+    is_bot: false,
+    first_name: "John Doe"
+}
+
+const chat: Chat.PrivateChat = {
+    ...person,
+    type: "private"
+}
 
 export function createMockMessageUpdate<M extends Message>(message: Update.New & Update.NonChannel & M): Update.MessageUpdate<M> {
     return {
         update_id: 1,
         message
+    }
+}
+
+export function generatePreCheckoutUpdate(total_amount: number, invoice_payload: string): Update.PreCheckoutQueryUpdate {
+    return {
+        update_id: 1,
+        pre_checkout_query: {
+            id: "query",
+            from: person,
+            currency: "EUR",
+            total_amount,
+            invoice_payload
+        }
     }
 }
 
@@ -23,16 +47,8 @@ export function createMockTextMessage(text: string): Update.New & Update.NonChan
     
     return {
         message_id: 1,
-        chat: {
-            id: 1,
-            type: "private",
-            first_name: "John Doe"
-        },
-        from: {
-            id: 1,
-            is_bot: false,
-            first_name: "John Doe"
-        },
+        chat,
+        from: person,
         date: Date.now(),
         text,
         entities: [ commandEntity ]
