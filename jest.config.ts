@@ -1,10 +1,12 @@
-const { pathsToModuleNameMapper } = require('ts-jest')
-const { compilerOptions } = require('./tsconfig.paths.json')
+import { compilerOptions } from './tsconfig.paths.json';
+import { pathsToModuleNameMapper } from 'ts-jest'
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-module.exports = {
+export default {
   preset: 'ts-jest',
   testEnvironment: 'node',
   modulePaths: [compilerOptions.baseUrl],
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths)
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths),
+  setupFiles: ['<rootDir>/jest.setup.ts'],
+  clearMocks: true
 };
