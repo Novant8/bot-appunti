@@ -1,5 +1,7 @@
-import { describe, it, expect } from '@jest/globals';
+import { jest, describe, it, expect } from '@jest/globals';
 import { createMockMessageUpdate, createMockSuccessfulPaymentMessage, createMockTextMessage, mock_bot } from './util/mocks';
+
+jest.mock('@libs/stripe');
 
 describe("Auto forward", () => {
     
