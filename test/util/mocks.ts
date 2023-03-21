@@ -26,7 +26,7 @@ export function generatePreCheckoutUpdate(total_amount: number, invoice_payload:
         update_id: 1,
         pre_checkout_query: {
             id: "query",
-            from: person,
+            from: {...person},
             currency: "EUR",
             total_amount,
             invoice_payload
@@ -47,8 +47,8 @@ export function createMockTextMessage(text: string): Update.New & Update.NonChan
     
     return {
         message_id: 1,
-        chat,
-        from: person,
+        chat: {...chat},
+        from: {...person},
         date: Date.now(),
         text,
         entities: [ commandEntity ]
@@ -59,7 +59,7 @@ export function createMockSuccessfulPaymentMessage(total_amount: number, invoice
     return {
         message_id: 1,
         chat,
-        from: person,
+        from: {...person},
         date: Date.now(),
         successful_payment: {
             currency: "EUR",
