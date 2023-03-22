@@ -2,7 +2,7 @@ import { getCourseNames, updateNotesFile } from "@libs/database";
 import { creatorOnly } from "@libs/middleware";
 import type { MessageHandler } from ".";
 import { message } from "telegraf/filters";
-import { Message } from "telegraf/types";
+import type { Message } from "telegraf/types";
 
 export const handler: MessageHandler = (bot) => {
     bot.on(message('document'), creatorOnly, async (ctx) => {
