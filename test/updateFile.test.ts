@@ -2,9 +2,6 @@ import { jest, describe, it, expect, beforeAll } from '@jest/globals';
 import { getCourseNames, updateNotesFile } from '@libs/database';
 import { createMockDocumentMessage, createMockMessageUpdate, mock_bot } from './util/mocks';
 
-jest.mock("@libs/stripe");
-jest.mock("@libs/database");
-
 describe("Update file", () => {
     const mock_getCourseNames = getCourseNames as jest.Mock<typeof getCourseNames>;
     const mock_updateNotesFile = updateNotesFile as jest.Mock<typeof updateNotesFile>;

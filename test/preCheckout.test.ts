@@ -3,8 +3,6 @@ import { generatePreCheckoutUpdate, mock_bot } from './util/mocks';
 import { getNoteDetails, getBundlePrice } from '@libs/database';
 import { InvoicePayload } from '@event_handlers/invoiceMessage';
 
-jest.mock('@libs/database');
-
 describe("Pre-checkout query", () => {
     describe("Course", () => {
         const mock_getNoteDetails = getNoteDetails as jest.Mock<typeof getNoteDetails>;

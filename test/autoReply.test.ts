@@ -2,8 +2,6 @@ import { jest, describe, it, expect, beforeAll } from '@jest/globals';
 import { userIsCustomer } from '@libs/stripe';
 import { createMockMessageUpdate, createMockTextMessage, mock_bot } from './util/mocks';
 
-jest.mock('@libs/stripe');
-
 describe("Auto reply", () => {
     const mock_userIsCustomer = userIsCustomer as jest.Mock<typeof userIsCustomer>;
 

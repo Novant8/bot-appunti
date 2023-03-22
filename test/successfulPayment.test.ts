@@ -2,8 +2,6 @@ import { jest, describe, it, expect, beforeAll } from '@jest/globals'
 import { getBundleFullNotesFileIDs, getFullNotesFileId } from '@libs/database';
 import { createMockMessageUpdate, createMockSuccessfulPaymentMessage, mock_bot } from './util/mocks';
 
-jest.mock("@libs/database");
-
 describe("Successful payment", () => {
 
     describe("Course", () => {
