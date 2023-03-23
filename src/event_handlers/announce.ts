@@ -28,7 +28,7 @@ type PollParams = {
  * @param params Object that maps variable names inserted in the message template with functions that allow to retrieve the value different for each user.
  */
 const sendAnnouncement = async (ctx: Context<Update>, userids: number[], course: string, message: string, params: AnnouncementParams, pollParams?: PollParams): Promise<void> => {
-    if(userids.length == 1) {
+    if(process.env.STAGE !=='dev' && userids.length == 1) {
         ctx.reply('No recipients were found for this announcement.');
         return;
     }
