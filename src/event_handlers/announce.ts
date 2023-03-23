@@ -3,7 +3,7 @@ import { creatorOnly, } from "@libs/middleware";
 import { getCustomersTelegramUserIDs, groupBoughtNotesByUser } from "@libs/stripe";
 import { TelegramError } from "telegraf";
 import type { Context } from "telegraf";
-import type { Message, Update, User } from "telegraf/typings/core/types/typegram";
+import type { Message, Update, Chat } from "telegraf/types";
 import type { ExtraPoll } from "telegraf/typings/telegram-types";
 import type { MessageHandler } from ".";
 import wait from "wait";
@@ -28,7 +28,7 @@ type PollParams = {
  * @param params Object that maps variable names inserted in the message template with functions that allow to retrieve the value different for each user.
  */
 const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course: string, message: string, params: AnnouncementParams, pollParams?: PollParams): Promise<void> => {
-    if(!userids.length) {
+    if(userids.length == 1) {
         ctx.reply('No recipients were found for this announcement.');
         return;
     }
@@ -85,9 +85,13 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course:
 export const handler : MessageHandler = async (bot) => {
     bot.command('announce', creatorOnly, async (ctx) => {
         const args = ctx.message.text.split(' ');
-        const course = args[1].replace(/_/g, ' ');
-        const after = new Date(args[2]);
-        const message = ctx.message.text.substring(args[0].length + args[1].length + args[2].length + 2);
+        const course = args[1]?.replace(/_/g, ' ') || '';
+        const after_str = args[2] || '';
+        const after = new Date(after_str);
+        const message = ctx.message.text.substring(args[0].length + course.length + after_str.length + 3);
+
+        if(!course)
+            return ctx.reply("No course given")
 
         if(isNaN(after.getTime()))
             return ctx.reply("Invalid date provided");
@@ -109,7 +113,7 @@ export const handler : MessageHandler = async (bot) => {
 
         await sendAnnouncement(ctx, userids, course, message, {
             "%name%": async (userid) => {
-                const user = await ctx.telegram.getChat(userid) as unknown as User;
+                const user = await ctx.telegram.getChat(userid) as Chat.PrivateGetChat;
                 return user.first_name;
             }
         })
@@ -131,9 +135,6 @@ export const handler : MessageHandler = async (bot) => {
         if(to && from > to)
             return ctx.reply("Invalid date interval");
 
-        if(message.length === 0)
-            return ctx.reply("No message given");
-
         const userNotes = await groupBoughtNotesByUser(from, to);
 
         let userids: string[];
@@ -144,7 +145,7 @@ export const handler : MessageHandler = async (bot) => {
 
         await sendAnnouncement(ctx, userids, null, message, {
             "%name%": async (userid) => {
-                const user = await ctx.telegram.getChat(userid) as unknown as User;
+                const user = await ctx.telegram.getChat(userid) as Chat.PrivateChat;
                 return user.first_name;
             },
             "%notes%": async (userid) => userNotes[userid].map(course => `• *${course}*`).join('\n')
