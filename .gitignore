@@ -10,6 +10,7 @@ jspm_packages
 
 # environment variables file
 .env*
+!.env.test
 
 # mocks folder containing JSON mock requests
 mocks
