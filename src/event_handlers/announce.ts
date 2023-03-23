@@ -9,7 +9,7 @@ import type { MessageHandler } from ".";
 import wait from "wait";
 
 type AnnouncementParams = {
-    [variable: string]: (userid: string) => Promise<string>
+    [variable: string]: (userid: number) => Promise<string>
 }
 
 type PollParams = {
@@ -27,13 +27,13 @@ type PollParams = {
  * @param pollParams If a poll should be sent, the parameters to be passed to the `sendPoll` function.
  * @param params Object that maps variable names inserted in the message template with functions that allow to retrieve the value different for each user.
  */
-const sendAnnouncement = async (ctx: Context<Update>, userids: string[], course: string, message: string, params: AnnouncementParams, pollParams?: PollParams): Promise<void> => {
+const sendAnnouncement = async (ctx: Context<Update>, userids: number[], course: string, message: string, params: AnnouncementParams, pollParams?: PollParams): Promise<void> => {
     if(userids.length == 1) {
         ctx.reply('No recipients were found for this announcement.');
         return;
     }
     
-    const failed: string[] = [];
+    const failed: number[] = [];
     const courseNotesFileID = course && course !== "All" && await getFullNotesFileId(course);
 
     let poll: Message.PollMessage;
@@ -99,7 +99,7 @@ export const handler : MessageHandler = async (bot) => {
         if(message.length === 0)
             return ctx.reply("No message given");
 
-        let userids: string[];
+        let userids: number[];
         if(process.env.STAGE === 'dev') {
             userids = [];
         } else if(course === "All") {
@@ -107,9 +107,9 @@ export const handler : MessageHandler = async (bot) => {
         } else {
             const userNotes = await groupBoughtNotesByUser(after);
             userids = Object.entries(userNotes).filter(([ _, bought ]) => bought.includes(course))
-                                               .map(([ id, _ ]) => id);
+                                               .map(([ id, _ ]) => parseInt(id));
         }
-        userids.push(process.env.CREATOR_USERID);
+        userids.push(parseInt(process.env.CREATOR_USERID));
 
         await sendAnnouncement(ctx, userids, course, message, {
             "%name%": async (userid) => {
@@ -137,11 +137,11 @@ export const handler : MessageHandler = async (bot) => {
 
         const userNotes = await groupBoughtNotesByUser(from, to);
 
-        let userids: string[];
+        let userids: number[];
         if(process.env.STAGE === 'dev')
-            userids = [ process.env.CREATOR_USERID ];
+            userids = [ parseInt(process.env.CREATOR_USERID) ];
         else
-            userids = Object.keys(userNotes);
+            userids = Object.keys(userNotes).map(id => parseInt(id));
 
         await sendAnnouncement(ctx, userids, null, message, {
             "%name%": async (userid) => {

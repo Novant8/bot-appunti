@@ -16,7 +16,7 @@ export type UserNotes = {
  * @param to Date before which payments should be fetched. If not specified, date will be now.
  * @returns List of user ids that bought any notes after the given date
  */
-export const getCustomersTelegramUserIDs = async (from?: Date, to?: Date): Promise<string[]> => {
+export const getCustomersTelegramUserIDs = async (from?: Date, to?: Date): Promise<number[]> => {
     const intents = await stripe.paymentIntents.list({
         created: { gte: from && Math.round(from.getTime()/1000), lte: to && Math.round(to.getTime()/1000) },
         limit: 100
@@ -25,7 +25,7 @@ export const getCustomersTelegramUserIDs = async (from?: Date, to?: Date): Promi
     /* Filter out failed payments and return distinct TG user IDs using a Set */
     const userids_set = new Set([
         ...intents.data.filter(pi => pi.status === 'succeeded')
-                       .map(pi => pi.metadata.tguser),
+                       .map(pi => parseInt(pi.metadata.tguser)),
         ...await getCustomerIDs(from, to)
     ])
 
@@ -37,7 +37,7 @@ export const getCustomersTelegramUserIDs = async (from?: Date, to?: Date): Promi
  * @param userid ID of the Telegram user
  * @returns `true` if the user has bought notes before
  */
-export const userIsCustomer = async (userid: string): Promise<boolean> => {
+export const userIsCustomer = async (userid: number): Promise<boolean> => {
     const customers = await getCustomersTelegramUserIDs();
     return customers.includes(userid);
 }

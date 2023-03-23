@@ -13,13 +13,13 @@ describe("Announcements", () => {
     const mock_tg_callApi = mock_bot.telegram.callApi as jest.Mock;
     const mock_wait = wait as jest.Mock<typeof wait>
 
-    const customerids = [ "12345", "67890" ];
-    const userids = [ ...customerids, process.env.CREATOR_USERID ];
+    const customerids: number[] = [ 12345, 67890 ];
+    const userids: number[] = [ ...customerids, parseInt(process.env.CREATOR_USERID) ];
     const groupedNotes = {
         "12345": [ "Analisi 1", "Chimica" ],
         "67890": [ "Fisica 1" ]
     }
-    const course_customers = [ "12345" ];
+    const course_customers = [ 12345 ];
     const user_info: { [id: string]: Chat.PrivateGetChat } = {
         "12345": {
             id: 12345,
@@ -127,7 +127,7 @@ describe("Announcements", () => {
 
             await mock_bot.handleUpdate(update);
 
-            [ ...course_customers, process.env.CREATOR_USERID ].forEach(userid => {
+            [ ...course_customers, parseInt(process.env.CREATOR_USERID) ].forEach(userid => {
                 expect(mock_bot.telegram.callApi).toHaveBeenCalledWith(
                     'sendDocument',
                     expect.objectContaining({

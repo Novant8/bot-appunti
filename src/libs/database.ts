@@ -200,7 +200,7 @@ export const addPurchase = async (tguser: number, courses: string[]): Promise<vo
     await db.send(new PutItemCommand(params));
 }
 
-export const getCustomerIDs = async (from: Date = new Date(0), to: Date = new Date()): Promise<string[]> => {
+export const getCustomerIDs = async (from: Date = new Date(0), to: Date = new Date()): Promise<number[]> => {
     const params : ScanCommandInput = {
         TableName: "acquisti-appunti",
         ProjectionExpression: "tguser",
@@ -219,7 +219,7 @@ export const getCustomerIDs = async (from: Date = new Date(0), to: Date = new Da
     /* Use a Set to return distinct user IDs */
     const userids_set = new Set(res.Items.map(i => i.tguser.N))
 
-    return Array.from(userids_set)
+    return Array.from(userids_set).map(uid => parseInt(uid))
 }
 
 export const getPurchases = async (from: Date = new Date(0), to: Date = new Date()): Promise<Purchase[]> => {

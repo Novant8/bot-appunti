@@ -6,7 +6,7 @@ export const handler : MessageHandler = async (bot) => {
         if(
             ctx.from.id !== parseInt(process.env.CREATOR_USERID) && /* exceptCreator */
             ctx.chat.type === 'private' &&
-            !await userIsCustomer(ctx.from.id.toString())
+            !await userIsCustomer(ctx.from.id)
         )
             return ctx.reply('Ciao! Sono un bot e non posso risponderti. Per chiedere informazioni scrivi @sAlb98.');
         return next();
