@@ -102,6 +102,21 @@ describe("Delete message command", () => {
         );
     })
 
+    it("should ignore user who is not creator", async () => {
+        const chat_id = '1234567890';
+        const message_id = 123;
+        
+        const message = createMockTextMessage(`/deletemessage https://t.me/${chat_id}/${message_id}`);
+        const update = createMockMessageUpdate(message);
+
+        await mock_bot.handleUpdate(update);
+
+        expect(mock_bot.telegram.callApi).not.toHaveBeenCalledWith(
+            'deleteMessage',
+            { chat_id, message_id }
+        );
+    })
+
     describe("Invalid links", () => {
         it("empty link", async () => {
             const chat_id = '1234567890';
