@@ -34,6 +34,18 @@ export function generatePreCheckoutUpdate(total_amount: number, invoice_payload:
     }
 }
 
+export function createMockInlineQueryUpdate(query: string): Update.InlineQueryUpdate {
+    return {
+        update_id: 1,
+        inline_query: {
+            id: "inline_query",
+            from: {...person},
+            query,
+            offset: "0"
+        }
+    }
+}
+
 export function createMockTextMessage(text: string): Update.New & Update.NonChannel & Message.TextMessage {    
     let commandEntity: MessageEntity;
     if(text.startsWith('/')) {
