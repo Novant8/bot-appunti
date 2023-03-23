@@ -38,10 +38,15 @@ The bot also supports [**inline mode**](https://core.telegram.org/bots/inline) t
 
 ## Environment variables
 
-The environment variables to be added to a `.env` file are the following:
+Environment variables' values change depending on the current stage and are stored in the following files:
+* `.env.prod` for production stage
+* `.env.dev` for development stage
+* `.env.test` is used by the testing library. Should contain dummy values.
+
+These files must contain the following environment variables:
 | Variable | Notes |
 | --- | --- |
-| `STAGE` | Can be `dev` or `prod`. The bot behaves differently depending on the current working stage. |
+| `STAGE` | Can be `dev`, `prod` or `test`. The bot behaves differently depending on the current working stage. |
 | `TELEGRAM_TOKEN` | Sent to you by BotFather after creating the new bot. |
 | `PAYMENT_TOKEN` | Sent to you by BotFather after linking Stripe to your bot. |
 | `CREATOR_USERID` | |
