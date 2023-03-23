@@ -25,7 +25,7 @@
     "@types/node": "^14.14.25",
     "esbuild": "^0.14.54",
     "jest": "^29.5.0",
-    "serverless": "^3.0.0",
+    "serverless": "^3.28.1",
     "serverless-dotenv-plugin": "^4.0.2",
     "serverless-esbuild": "^1.23.3",
     "ts-jest": "^29.0.5",
