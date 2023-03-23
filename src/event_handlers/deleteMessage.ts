@@ -4,17 +4,17 @@ import { creatorOnly } from "@libs/middleware";
 
 export const handler : MessageHandler = (bot) => {
     bot.command('deletemessage', creatorOnly, async (ctx) => {
-        const splitLink = ctx.message.text.split(' ')[1]?.split('/');
+        const regex = /(https:\/\/)?t(elegram)?.me\/(\w+)\/([0-9]+)/;
+        const args = ctx.message.text.split(' ');
+        const link = args[1];
 
-        if(typeof splitLink === 'undefined')
-            return ctx.reply('No message link provided.');
+        const matches = link?.match(regex);
         
-        const chatID = splitLink[splitLink.length-2];    
-        const chat = isNaN(parseInt(chatID)) ? '@'+chatID : chatID;
-        const msgid = parseInt(splitLink[splitLink.length-1]);
-
-        if(isNaN(msgid))
+        if(!matches)
             return ctx.reply("Invalid message link.");
+
+        const chat = isNaN(parseInt(matches[3])) ? `@${matches[3]}` : matches[3];
+        const msgid = parseInt(matches[4]);
 
         try {
             await ctx.telegram.deleteMessage(chat, msgid);
