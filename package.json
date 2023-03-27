@@ -10,7 +10,7 @@
     "node": ">=14.15.0"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.298.0",
+    "@aws-sdk/client-dynamodb": "^3.299.0",
     "dotenv": "^16.0.3",
     "jsonwebtoken": "^9.0.0",
     "probe-image-size": "^7.2.3",
