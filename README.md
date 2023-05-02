@@ -3,7 +3,7 @@
 ### **A serverless Telegram bot for selling university notes.**
 
 This bot is based on:
-* [Telegraf](https://github.com/telegraf/telegraf) as the bot's main framework.
+* [Telegraf](https://github.com/telegraf/telegraf) as its main framework.
 * [Stripe](https://stripe.com/) for handling payments.
 * [AWS DynamoDB](https://aws.amazon.com/it/dynamodb/) for storing notes' information.
 * [AWS Lambda](https://aws.amazon.com/it/lambda/) for handling events sent by Telegram through webhooks.
@@ -88,18 +88,20 @@ This project uses a DynamoDB database to store notes' and additional purchases' 
 
 ## Setup
 
-1. Setup and populate the database as specified [here](#database).
+1. Create a new database and populate it as specified [here](#database).
 
 2. [Create a new Telegram bot](https://core.telegram.org/bots/tutorial).
 
-2. Create the files `.env.dev` and `.env.prod` inside the root folder and setup the environment variables as specified [here](#environment-variables).
+3. [Link the new bot to your Stripe account and generate a token](https://core.telegram.org/bots/payments#connecting-payments).
 
-3. Deploy the project to AWS:
+4. Create the files `.env.dev` and `.env.prod` inside the root folder and setup the environment variables as specified [here](#environment-variables).
+
+5. Deploy the project to AWS:
     ```
     serverless deploy -s <stage>
     ```
 
-4. Setup a webhook on Telegram's end with the following URL:
+6. Setup a webhook on Telegram's end with the following URL:
     ```
     https://api.telegram.org/bot<token>/setWebhook?url=<api_endpoint>
     ```
