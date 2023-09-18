@@ -401,7 +401,7 @@ describe("Announcements", () => {
 
     describe("Ask feedback command", () => {
 
-        it("should send message and poll to all customers after date and creator", async () => {
+        it("should send message to all customers after date and creator", async () => {
             const from = "2023-03-01";
 
             const message = createMockTextMessage(`/askfeedback ${from}`);
@@ -411,24 +411,6 @@ describe("Announcements", () => {
             await mock_bot.handleUpdate(update);
 
             expect(mock_groupBoughtNotesByUser).toHaveBeenCalledWith(new Date(from), undefined);
-            expect(mock_bot.telegram.callApi).toHaveBeenCalledWith(
-                'sendPoll',
-                expect.objectContaining({
-                    chat_id: parseInt(process.env.CREATOR_USERID),
-                    question: expect.stringContaining("soddisfatto"),
-                    options: expect.any(Array<String>)
-                })
-            )
-            customerids.forEach(userid => {
-                expect(mock_bot.telegram.callApi).toHaveBeenCalledWith(
-                    'forwardMessage',
-                    {
-                        from_chat_id: message.chat.id,
-                        chat_id: userid,
-                        message_id: 1
-                    }
-                )
-            })
             expect(mock_bot.telegram.callApi).toHaveBeenCalledWith(
                 'sendMessage',
                 {
@@ -458,11 +440,11 @@ describe("Announcements", () => {
             expect(mock_groupBoughtNotesByUser).toHaveBeenCalledWith(new Date(from), new Date(to));
         })
 
-        it("should wait and re-send poll after Telegram gives 429 error", async () => {
+        it("should wait and re-send message after Telegram gives 429 error", async () => {
             const retry_after = 30;
             mock_tg_callApi.mockImplementationOnce(function throw429(op: string, data: any) {
                 // Throw error only on first call with "sendMessage" operation
-                if(op === 'forwardMessage')
+                if(op === 'sendMessage')
                     throw new TelegramError({
                         error_code: 429,
                         description: "Too many requests!",
@@ -481,17 +463,7 @@ describe("Announcements", () => {
             await mock_bot.handleUpdate(update);
 
             expect(mock_wait).toHaveBeenCalledWith(retry_after*1000);
-            customerids.forEach(userid => {
-                expect(mock_bot.telegram.callApi).toHaveBeenCalledWith(
-                    'forwardMessage',
-                    {
-                        from_chat_id: message.chat.id,
-                        chat_id: userid,
-                        message_id: 1
-                    }
-                )
-            })
-            expect(mock_tg_callApi.mock.calls.filter(c => c[0] === 'forwardMessage' && (c[1] as any).chat_id == userids[0])).toHaveLength(2)
+            expect(mock_tg_callApi.mock.calls.filter(([ type, msg ]: [ string, any ]) => type === 'sendMessage' && msg.chat_id == userids[0])).toHaveLength(2)
             expect(mock_bot.telegram.callApi).toHaveBeenCalledWith(
                 'sendMessage',
                 {

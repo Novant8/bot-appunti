@@ -11,7 +11,8 @@ declare global {
             SHOP_CHANNEL_LINK: string,
             ADVERT_CHANNEL: string,
             STRIPE_API_KEY: string,
-            RECURRENT_MESSAGE_SECRET: string
+            RECURRENT_MESSAGE_SECRET: string,
+            FORM_URL: string
         }
     }
 }

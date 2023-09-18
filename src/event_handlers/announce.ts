@@ -1,21 +1,15 @@
 import { getFullNotesFileId } from "@libs/database";
 import { creatorOnly, } from "@libs/middleware";
 import { getCustomersTelegramUserIDs, groupBoughtNotesByUser } from "@libs/stripe";
-import { TelegramError } from "telegraf";
+import { Markup, TelegramError } from "telegraf";
 import type { Context } from "telegraf";
 import type { Message, Update, Chat } from "telegraf/types";
-import type { ExtraPoll } from "telegraf/typings/telegram-types";
+import type { ExtraReplyMessage } from "telegraf/typings/telegram-types";
 import type { MessageHandler } from ".";
 import wait from "wait";
 
 type AnnouncementParams = {
     [variable: string]: (userid: number) => Promise<string>
-}
-
-type PollParams = {
-    question: string,
-    options: string[],
-    extras?: ExtraPoll
 }
 
 /**
@@ -27,7 +21,7 @@ type PollParams = {
  * @param pollParams If a poll should be sent, the parameters to be passed to the `sendPoll` function.
  * @param params Object that maps variable names inserted in the message template with functions that allow to retrieve the value different for each user.
  */
-const sendAnnouncement = async (ctx: Context<Update>, userids: number[], course: string, message: string, params: AnnouncementParams, pollParams?: PollParams): Promise<void> => {
+const sendAnnouncement = async (ctx: Context<Update>, userids: number[], course: string, message: string, params: AnnouncementParams, extra: ExtraReplyMessage = {}): Promise<void> => {
     if(process.env.STAGE !=='dev' && userids.length == 1) {
         ctx.reply('No recipients were found for this announcement.');
         return;
@@ -36,32 +30,20 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: number[], course:
     const failed: number[] = [];
     const courseNotesFileID = course && course !== "All" && await getFullNotesFileId(course);
 
-    let poll: Message.PollMessage;
-    if(pollParams)
-        poll = await ctx.replyWithPoll(pollParams.question, pollParams.options, pollParams.extras);
-
     for(const id of userids) {
         let retry_msg = true;
-        let retry_poll = !!poll;
-        while(retry_msg || retry_poll)
+        while(retry_msg)
             try {
-                if(retry_msg) {
-                    let compiledMessage = message;
-                    for(const variable in params)
-                        compiledMessage = compiledMessage.replace(new RegExp(variable, 'g'), await params[variable](id));
-                    let msg: Message;
-                    if(courseNotesFileID)
-                        msg = await ctx.telegram.sendDocument(id, courseNotesFileID, { caption: compiledMessage, parse_mode: 'Markdown' });              
-                    else
-                        msg = await ctx.telegram.sendMessage(id, compiledMessage, { parse_mode: 'Markdown' });
-                    console.log(`Sent message to user ${id}. Message ID: ${msg.message_id}.`);
-                    retry_msg = false;
-                }
-                if(retry_poll) {
-                    const msg = await ctx.telegram.forwardMessage(id, ctx.from.id, poll.message_id);
-                    console.log(`Sent poll to user ${id}. Message ID: ${msg.message_id}.`);
-                    retry_poll = false;
-                }
+                let compiledMessage = message;
+                for(const variable in params)
+                    compiledMessage = compiledMessage.replace(new RegExp(variable, 'g'), await params[variable](id));
+                let msg: Message;
+                if(courseNotesFileID)
+                    msg = await ctx.telegram.sendDocument(id, courseNotesFileID, { ...extra, caption: compiledMessage, parse_mode: 'Markdown' });              
+                else
+                    msg = await ctx.telegram.sendMessage(id, compiledMessage, { ...extra, parse_mode: 'Markdown' });
+                console.log(`Sent message to user ${id}. Message ID: ${msg.message_id}.`);
+                retry_msg = false;
             } catch (e) {
                 if(e instanceof TelegramError && e.response.error_code === 429 && e.response.parameters.retry_after) {
                     console.log(`Encountered 429 error on user ${id}. Waiting for ${e.response.parameters.retry_after} seconds...`);
@@ -70,7 +52,6 @@ const sendAnnouncement = async (ctx: Context<Update>, userids: number[], course:
                     console.warn(`Failed to send message to user ${id}. ${e.message}`);
                     failed.push(id);
                     retry_msg = false;
-                    retry_poll = false;
                 }
             }
     }
@@ -124,8 +105,7 @@ export const handler : MessageHandler = async (bot) => {
         const from = new Date(args[1]);
         const to = args[2] && new Date(args[2]);
         const message = 'Ciao %name%! Ricevi questo messaggio perchè nel periodo didattico passato hai acquistato gli appunti delle seguenti materie:\n%notes%\n\n'+
-                        'Se li hai usati per sostenere gli esami di questo periodo, chiedo giusto un attimo del tuo tempo per rispondere al sondaggio qui sotto, il che sarebbe molto d\'aiuto a me e ai posteri 🙏\n\n'+
-                        'Se vuoi inoltre scrivere un piccolo commento su come li hai trovati e su come eventualmente migliorarli, puoi farlo direttamente in questa chat oppure scrivimi @sAlb98.\n\n'+
+                        'Se li hai usati per sostenere gli esami di questo periodo, chiedo giusto due minuti del tuo tempo per rispondere al sondaggio cliccando il bottone in fondo al messaggio, il che mi sarebbe molto d\'aiuto per migliorare gli appunti in futuro 🙏\n\n'+
                         'Grazie e buon proseguimento di studi!\n'+
                         '- AV';
         
@@ -143,20 +123,23 @@ export const handler : MessageHandler = async (bot) => {
         else
             userids = Object.keys(userNotes).map(id => parseInt(id));
 
+        let survey_btn = Markup.inlineKeyboard([
+            Markup.button.url("Compila il modulo", process.env.FORM_URL)
+        ]);
+
         await sendAnnouncement(ctx, userids, null, message, {
             "%name%": async (userid) => {
                 const user = await ctx.telegram.getChat(userid) as Chat.PrivateChat;
                 return user.first_name;
             },
             "%notes%": async (userid) => userNotes[userid].map(course => `• *${course}*`).join('\n')
-        }, {
-            question: 'Quanto ti ritieni soddisfatto/a degli appunti acquistati?',
-            options: [
-                'Molto soddisfatto/a',
-                'Soddisfatto/a',
-                'Poco soddisfatto/a',
-                'Per niente soddisfatto/a'
-            ]
-        });
+        }, survey_btn);
+
+        /* Send generic message to creator */
+        const generic_msg = 'Ciao! Ricevi questo messaggio perchè nel periodo didattico passato hai acquistato gli appunti di una o più materie.\n\n'+
+                            'Se li hai usati per sostenere gli esami di questo periodo, chiedo giusto due minuti del tuo tempo per rispondere al sondaggio cliccando il bottone in fondo al messaggio, il che mi sarebbe molto d\'aiuto per migliorare gli appunti in futuro 🙏\n\n'+
+                            'Grazie e buon proseguimento di studi!\n'+
+                            '- AV';
+        await ctx.telegram.sendMessage(process.env.CREATOR_USERID, generic_msg, { ...survey_btn, parse_mode: 'Markdown' });
     })
 };
